@@ -197,7 +197,9 @@ prayers = text(TILAWAH / "PrayerTimes.java") + text(TILAWAH / "PrayerMath.java")
 check("Umm al-Qura: Fajr at 18.5°", "18.5" in prayers)
 check("Umm al-Qura: Isha 90 minutes after Maghrib", "90" in prayers and "120" in prayers)
 check("Ramadan uses the Umm al-Qura calendar", "islamic-umalqura" in prayers)
-check("Aladhan is the online source, method 4", "api.aladhan.com" in prayers and "method=4" in prayers)
+check("Aladhan is the online source, by the chosen method (Umm al-Qura is its method 4)",
+      "api.aladhan.com" in prayers and '"&method=" + place.method.aladhan' in prayers
+      and 'Method("umm_alqura", 4,' in (ROOT / "android/launcher/src/main/java/sa/bayti/home/tilawah/PrayerMath.java").read_text(encoding="utf-8"))
 
 adhan = text(TILAWAH / "Adhan.java")
 check("21 adhan voices", "VOICES = 21" in adhan)
