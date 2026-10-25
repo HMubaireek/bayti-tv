@@ -27,7 +27,7 @@ def check(name, ok, detail=""):
     print(("PASS " if ok else "FAIL ") + name + ("" if ok else "  -> " + detail))
     failed += not ok
 
-A = "am broadcast -n sa.urtv.home/.DockReceiver -a sa.urtv.home."
+A = "am broadcast -n sa.bayti.home/.DockReceiver -a sa.bayti.home."
 rc, out, sent = run("names")
 check("names: lists them", rc == 0 and sent == A + "NAMES", sent)
 rc, out, sent = run("names-clear")

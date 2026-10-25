@@ -13,10 +13,10 @@ if not shutil.which("javac"):
     sys.exit(0)
 cases = [l.split("\t") for l in (ROOT / "tests/countdown_text_cases.tsv").read_text(encoding="utf-8").split("\n") if l and not l.startswith("#")]
 with tempfile.TemporaryDirectory() as tmp:
-    subprocess.run(["javac", "-encoding", "UTF-8", "-d", tmp, str(ROOT / "android/app/src/main/java/sa/urtv/screensaver/CountdownText.java"),
-                    str(ROOT / "android/app/src/main/java/sa/urtv/screensaver/DigitsText.java"),
+    subprocess.run(["javac", "-encoding", "UTF-8", "-d", tmp, str(ROOT / "android/app/src/main/java/sa/bayti/screensaver/CountdownText.java"),
+                    str(ROOT / "android/app/src/main/java/sa/bayti/screensaver/DigitsText.java"),
                     str(ROOT / "tests/CountdownTextRun.java")], check=True)
-    out = subprocess.run(["java", "-Dfile.encoding=UTF-8", "-cp", tmp, "sa.urtv.screensaver.CountdownTextRun", str(ROOT / "tests/countdown_text_cases.tsv")],
+    out = subprocess.run(["java", "-Dfile.encoding=UTF-8", "-cp", tmp, "sa.bayti.screensaver.CountdownTextRun", str(ROOT / "tests/countdown_text_cases.tsv")],
                          check=True, capture_output=True).stdout
 got = out.decode("utf-8").split("\n")
 failed = 0

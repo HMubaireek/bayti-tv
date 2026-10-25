@@ -8,14 +8,14 @@
 <meta name="urtv-build" content="__BUILD__">
 <title>شاشة تلفزيونك</title>
 <style>
-  @font-face{font-family:'Thmanyah';font-weight:300;font-style:normal;font-display:block;src:url("__F_LIGHT__") format("woff2")}
-  @font-face{font-family:'Thmanyah';font-weight:400;font-style:normal;font-display:block;src:url("__F_REGULAR__") format("woff2")}
-  @font-face{font-family:'Thmanyah';font-weight:500;font-style:normal;font-display:block;src:url("__F_MEDIUM__") format("woff2")}
-  /* ﷺ and ﴿﴾ only (2 KB subset of Noto Naskh Arabic, OFL): Thmanyah has no glyph for them */
+  @font-face{font-family:'Tajawal';font-weight:300;font-style:normal;font-display:block;src:url("__F_LIGHT__") format("woff2")}
+  @font-face{font-family:'Tajawal';font-weight:400;font-style:normal;font-display:block;src:url("__F_REGULAR__") format("woff2")}
+  @font-face{font-family:'Tajawal';font-weight:500;font-style:normal;font-display:block;src:url("__F_MEDIUM__") format("woff2")}
+  /* ﷺ and ﴿﴾ only (2 KB subset of Noto Naskh Arabic, OFL): Tajawal has no glyph for them */
   @font-face{font-family:'NotoMarks';font-style:normal;font-weight:400;src:url("__F_MARKS__") format("woff2")}
   /* the Quran text only (verse of the day, Quranic adhkar), with the KFGQPC Uthmani text made for it: assets/fonts/UthmanicHafs-NOTICE.txt */
   @font-face{font-family:'UthmanicHafs';font-weight:400;font-style:normal;font-display:block;src:url("__F_HAFS__") format("woff2")}
-  @font-face{font-family:'ThmanyahDisplay';font-weight:700;font-style:normal;font-display:block;src:url("__F_DISPLAY__") format("woff2")}
+  @font-face{font-family:'TajawalDisplay';font-weight:700;font-style:normal;font-display:block;src:url("__F_DISPLAY__") format("woff2")}
 
   :root{
     --sand:#F6EFE0;
@@ -50,7 +50,7 @@
   html.widget .week.boxes{padding:max(1.7vh,10px) max(1.4vw,14px)}   /* the prayer boxes keep a clear, even distance from the card's edge */
   html,body{
     height:100%;overflow:hidden;background:#040E09;color:var(--sand);
-    font-family:'Thmanyah',system-ui,sans-serif;
+    font-family:'Tajawal',system-ui,sans-serif;
     -webkit-user-select:none;user-select:none;cursor:none;
   }
 
@@ -203,13 +203,13 @@
   .week li.next .dt{color:var(--gold-3)}
   .week li.quote{white-space:normal;display:block;font-size:calc(clamp(17px,1.5vw,29px)*var(--z,1));line-height:1.75;
     border-bottom:none;padding:.4vh 0 0;color:#FFF7E6}
-  /* Thmanyah draws ﴿﴾ as small angle marks: they come from the NotoMarks subset */
+  /* Tajawal draws ﴿﴾ as small angle marks: they come from the NotoMarks subset */
   .week li.quote .orn{font-family:'NotoMarks','Noto Naskh Arabic',serif;color:var(--gold-2);
     font-size:1.05em;padding:0 .15em}
-  /* ﷺ is not in Thmanyah either: NotoMarks, in gold like the verse brackets so it reads as ornament */
+  /* ﷺ is not in Tajawal either: NotoMarks, in gold like the verse brackets so it reads as ornament */
   .week li.quote .saw{font-family:'NotoMarks','Noto Naskh Arabic',serif;color:var(--gold-2);font-size:1.6em;line-height:1;vertical-align:-.1em}
   /* the Uthmanic Hafs face is small for its size and its marks stack high: larger, with more leading */
-  .week li.quote .qt{font-family:'UthmanicHafs','Thmanyah',serif;font-size:1.32em}
+  .week li.quote .qt{font-family:'UthmanicHafs','Tajawal',serif;font-size:1.32em}
   .week li.quote.quran{line-height:1.95}
   .week li.quote.quran.q1{font-size:calc(clamp(13px,1.3vw,25px)*var(--z,1));line-height:1.85}   /* the Hafs face is wide: a lower floor than the other cards' */
   .week li.quote.quran.q2{line-height:1.8}
@@ -371,7 +371,7 @@
   html.widget .week.live.lf .micmark svg{fill:#1A1409}
   .clock{
     display:flex;align-items:baseline;justify-content:center;direction:ltr;
-    font-family:'ThmanyahDisplay','Thmanyah',serif;
+    font-family:'TajawalDisplay','Tajawal',serif;
     font-weight:700;
     font-size:clamp(120px,min(17vw,31vh),345px);line-height:.92;letter-spacing:.022em;
     color:#FFFDF6;font-variant-numeric:tabular-nums;
@@ -406,7 +406,7 @@
   }
   .panel .big{
     display:flex;align-items:baseline;gap:.4em;flex-wrap:nowrap;white-space:nowrap;min-width:0;line-height:1.1;
-    font-weight:700;font-family:'ThmanyahDisplay','Thmanyah',serif;font-size:clamp(22px,2vw,42px);color:var(--sand);
+    font-weight:700;font-family:'TajawalDisplay','Tajawal',serif;font-size:clamp(22px,2vw,42px);color:var(--sand);
   }
   .panel .num{color:#FFFCF2;font-size:1.12em;font-variant-numeric:tabular-nums;font-weight:500}
   .panel .unit{font-size:.56em;font-weight:500;color:var(--gold)}
@@ -444,7 +444,7 @@
   .mblock .big > span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;
     padding-bottom:.3em;margin-bottom:-.3em;    /* room for the dots under ي, ج… */
     padding-inline:.15em;margin-inline:-.15em;max-width:calc(100% + .3em)}  /* and for a final ر or ن past the ends */
-  .none-week{font-size:clamp(26px,2.5vw,54px);font-weight:700;font-family:'ThmanyahDisplay','Thmanyah',serif;color:#A79C85}
+  .none-week{font-size:clamp(26px,2.5vw,54px);font-weight:700;font-family:'TajawalDisplay','Tajawal',serif;color:#A79C85}
 
   /* A new photo settles in over a minute, then holds still: an endless drift kept the TV redrawing
      the whole screen 60 times a second, for hours. */
@@ -458,7 +458,7 @@
   .markets{text-align:left;flex-shrink:0}
   .wxline{display:flex;align-items:baseline;gap:.5em;justify-content:flex-end;line-height:1.3;
     font-size:clamp(19px,1.86vw,37px);font-weight:500;color:var(--sand)}
-  .wxt{font-family:'ThmanyahDisplay','Thmanyah',serif;font-weight:700;color:#FFFCF2;direction:ltr;
+  .wxt{font-family:'TajawalDisplay','Tajawal',serif;font-weight:700;color:#FFFCF2;direction:ltr;
     font-variant-numeric:tabular-nums}
   .wxd.dust{color:#E8B86A}
   .wxsub{margin-top:.55vh;font-size:clamp(12px,1.06vw,21px);font-weight:300;color:var(--dim);white-space:nowrap}
@@ -2871,7 +2871,7 @@ function pixelShift(){
 
 // Background photos: the hosted set in photos/ (photos/index.json in the repo). A hosted photo is used only
 // once it has loaded; offline, or if it fails, a bundled one is shown, so the screen is never empty.
-const PHOTO_BASE = 'https://raw.githubusercontent.com/tshi-dev/UrTV/master/photos/';
+const PHOTO_BASE = 'https://raw.githubusercontent.com/HMubaireek/bayti-tv/master/photos/';
 // «مصادر الصور»: with other sources the app answers index.json with their merged list, where f is a full https address
 const photoUrl = b => /^https:\/\//.test(b.f) ? b.f : PHOTO_BASE + b.f;
 let REMOTE_BGS = (()=>{ try{ return JSON.parse(localStorage.getItem('photoIndex') || '[]'); }catch(e){ return []; } })();

@@ -15,9 +15,9 @@ cases = [l.split("\t") for l in (ROOT / "tests/task_voice_cases.tsv").read_text(
          if l and not l.startswith("#")]
 with tempfile.TemporaryDirectory() as tmp:
     subprocess.run(["javac", "-encoding", "UTF-8", "-d", tmp,
-                    str(ROOT / "android/launcher/src/main/java/sa/urtv/home/TaskVoice.java"),
+                    str(ROOT / "android/launcher/src/main/java/sa/bayti/home/TaskVoice.java"),
                     str(ROOT / "tests/TaskVoiceRun.java")], check=True)
-    out = subprocess.run(["java", "-Dfile.encoding=UTF-8", "-cp", tmp, "sa.urtv.home.TaskVoiceRun",
+    out = subprocess.run(["java", "-Dfile.encoding=UTF-8", "-cp", tmp, "sa.bayti.home.TaskVoiceRun",
                           str(ROOT / "tests/task_voice_cases.tsv")], check=True, capture_output=True).stdout
 got = out.decode("utf-8").split("\n")
 failed = 0

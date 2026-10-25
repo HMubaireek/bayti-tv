@@ -179,7 +179,7 @@ javac, java = shutil.which("javac"), shutil.which("java")
 if not (javac and java):
     print("SKIP Prefs.leagueByName: no javac here")
 else:
-    src = (ROOT / "android/app/src/main/java/sa/urtv/screensaver/Prefs.java").read_text(encoding="utf-8")
+    src = (ROOT / "android/app/src/main/java/sa/bayti/screensaver/Prefs.java").read_text(encoding="utf-8")
     table = "static final String[][] LEAGUES = {" + src.split("static final String[][] LEAGUES = {")[1].split("};")[0] + "};"
     fn = src[src.index("    static String[] leagueByName"):src.index("    /** Followed leagues, by their English names")]
     cases = [("Saudi-Arabian Pro League", "Saudi-Arabian Pro League"), ("saudi-arabian-pro-league", "Saudi-Arabian Pro League"),

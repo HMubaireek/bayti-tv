@@ -11,8 +11,8 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 PY="${PY:-optimize/venv/bin/python}"
 DIR="${URTV_HOME:-$HOME/.urtv}/settings"
-SAVER=(sa.urtv.screensaver/.SaverReceiver sa.urtv.screensaver)
-HOME_APP=(sa.urtv.home/.DockReceiver sa.urtv.home)
+SAVER=(sa.bayti.screensaver/.SaverReceiver sa.bayti.screensaver)
+HOME_APP=(sa.bayti.home/.DockReceiver sa.bayti.home)
 
 answer() {   # $1 receiver, $2 action, $3 extras: the "data" of am broadcast
   "$PY" -I optimize/tv.py "am broadcast -n $1 -a $2 ${3:-}" | tr -d '\r' | sed -n '/data="/,$p' | sed '1s/.*data="//; $s/"$//'

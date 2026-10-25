@@ -78,12 +78,12 @@ else:
         queries = [q for q, *_ in CASES] + spellings + ["x" * 5000, "ـــ", "الالالال", "a" + "́" * 50]
         queries = [clean(q) for q in queries]
         (tmp / "queries.txt").write_text("\n".join(queries) + "\n", encoding="utf-8")
-        src = ROOT / "android/app/src/main/java/sa/urtv/screensaver/TeamSearch.java"
+        src = ROOT / "android/app/src/main/java/sa/bayti/screensaver/TeamSearch.java"
         r = subprocess.run([javac, "-encoding", "UTF-8", "-d", str(tmp), str(src), str(ROOT / "tests/TeamSearchRun.java")],
                            capture_output=True, text=True)
         check("TeamSearch.java compiles", r.returncode == 0, r.stderr[-600:])
         if r.returncode == 0:
-            r = subprocess.run([java, "-cp", str(tmp), "sa.urtv.screensaver.TeamSearchRun", str(tmp / "teams.tsv"),
+            r = subprocess.run([java, "-cp", str(tmp), "sa.bayti.screensaver.TeamSearchRun", str(tmp / "teams.tsv"),
                                 str(tmp / "queries.txt")], capture_output=True)
             lines = r.stdout.decode("utf-8").split("\n")
             check("TeamSearch.java runs", r.returncode == 0 and len(lines) >= len(queries), r.stderr.decode()[-600:])

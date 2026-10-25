@@ -21,14 +21,14 @@ def check(name, ok, detail=""):
     failed += not ok
 
 for cmd in ("wm size", "wm density", "date", "date +%s", "date -u +%Y", "getprop ro.product.model", "settings get secure screensaver_enabled",
-            "pm list packages -d", "dumpsys package sa.urtv.home | grep -m1 versionName", "cat /proc/meminfo", "echo hi"):
+            "pm list packages -d", "dumpsys package sa.bayti.home | grep -m1 versionName", "cat /proc/meminfo", "echo hi"):
     check(f"reading: {cmd}", tv.is_read_only(cmd))
 for cmd in ("wm size 1280x720", "wm size reset", "wm density 240", "wm density reset", "date -s 20260101.120000", "date 010112002026",
             "date +%s; date -s 20260101", "settings put system screen_off_timeout 60000", "pm disable-user com.x", "reboot",
             "echo hi > /sdcard/x", "wm size 1280x720; getprop a"):
     check(f"changing: {cmd}", not tv.is_read_only(cmd))
-check("one argument is a whole command", tv.shell_line(["pm list packages sa.urtv"]) == "pm list packages sa.urtv")
-check("several arguments are words, each quoted", tv.shell_line(["pm", "list", "packages", "sa.urtv"]) == "pm list packages sa.urtv")
+check("one argument is a whole command", tv.shell_line(["pm list packages sa.bayti"]) == "pm list packages sa.bayti")
+check("several arguments are words, each quoted", tv.shell_line(["pm", "list", "packages", "sa.bayti"]) == "pm list packages sa.bayti")
 check("a word with a space or a ; stays one word", tv.shell_line(["settings", "put", "secure", "x", "a b; reboot"]) == "settings put secure x 'a b; reboot'",
       tv.shell_line(["settings", "put", "secure", "x", "a b; reboot"]))
 check("and so it is judged as the change it is", not tv.is_read_only(tv.shell_line(["wm", "size", "1280x720"])))

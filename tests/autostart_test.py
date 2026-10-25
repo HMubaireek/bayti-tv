@@ -45,30 +45,30 @@ real = tmp / "py"
 real.write_text('#!/bin/bash\nif [ "$2" = optimize/tv.py ]; then exec ' + str(fake) + ' "$@"; else exec python3 "$@"; fi\n'); real.chmod(0o755)
 import json
 def run(*args, **state):
-    base = {"maker": "TCL", "installed": ["sa.urtv.home", "sa.urtv.screensaver"], "ops": {"AUTO_START": {}, "APP_AUTO_START": {}}, "honour": True, "written": False}
+    base = {"maker": "TCL", "installed": ["sa.bayti.home", "sa.bayti.screensaver"], "ops": {"AUTO_START": {}, "APP_AUTO_START": {}}, "honour": True, "written": False}
     base.update(state)
     (tmp / "state.json").write_text(json.dumps(base)); (tmp / "log").write_text("")
     r = subprocess.run(["bash", str(ROOT / "optimize/autostart.sh"), *args], capture_output=True, text=True, cwd=ROOT,
                        env={**os.environ, "PY": str(real), "TVSTATE": str(tmp / "state.json"), "LOG": str(tmp / "log")})
     return r.returncode, (r.stdout + r.stderr).strip(), (tmp / "log").read_text(), json.loads((tmp / "state.json").read_text())
 
-rc, out, log, st = run(ops={"AUTO_START": {"sa.urtv.home": "ignore", "sa.urtv.screensaver": "ignore"}, "APP_AUTO_START": {}})
+rc, out, log, st = run(ops={"AUTO_START": {"sa.bayti.home": "ignore", "sa.bayti.screensaver": "ignore"}, "APP_AUTO_START": {}})
 check("a TCL G08 build (AUTO_START): both apps allowed, written to disk, the line says so",
-      rc == 0 and out == "Auto-start (TCL): sa.urtv.home allow, sa.urtv.screensaver allow" and st["written"], out)
+      rc == 0 and out == "Auto-start (TCL): sa.bayti.home allow, sa.bayti.screensaver allow" and st["written"], out)
 check("both op names are tried and the grant is written (G08 and G10 name it differently)", "APP_AUTO_START allow" in log and "AUTO_START allow" in log and "write-settings" in log, log)
-rc, out, log, st = run(ops={"AUTO_START": {}, "APP_AUTO_START": {"sa.urtv.home": "ignore", "sa.urtv.screensaver": "ignore"}})
-check("a TCL G10 build (APP_AUTO_START): allowed too", rc == 0 and "sa.urtv.home allow" in out and "!!" not in out, out)
+rc, out, log, st = run(ops={"AUTO_START": {}, "APP_AUTO_START": {"sa.bayti.home": "ignore", "sa.bayti.screensaver": "ignore"}})
+check("a TCL G10 build (APP_AUTO_START): allowed too", rc == 0 and "sa.bayti.home allow" in out and "!!" not in out, out)
 rc, out, log, st = run(maker="Sony")
 check("not a TCL: nothing is set, said in one line", rc == 0 and out == "Auto-start: not a TCL, nothing to allow" and "appops set" not in log, out + log)
-rc, out, log, st = run(maker="Haier", tclpkgs=["com.tcl.bi"], ops={"AUTO_START": {"sa.urtv.home": "ignore", "sa.urtv.screensaver": "ignore"}, "APP_AUTO_START": {}})
+rc, out, log, st = run(maker="Haier", tclpkgs=["com.tcl.bi"], ops={"AUTO_START": {"sa.bayti.home": "ignore", "sa.bayti.screensaver": "ignore"}, "APP_AUTO_START": {}})
 check("a TCL-based set whose maker says otherwise (com.tcl.* packages): treated as TCL", "Auto-start (TCL)" in out, out)
-rc, out, log, st = run(honour=False, ops={"AUTO_START": {"sa.urtv.home": "ignore", "sa.urtv.screensaver": "ignore"}, "APP_AUTO_START": {}})
-check("a TCL that keeps refusing: a !! line that names the app and what to do", "!! Auto-start (TCL): not allowed for" in out and "sa.urtv.home(ignore)" in out, out)
+rc, out, log, st = run(honour=False, ops={"AUTO_START": {"sa.bayti.home": "ignore", "sa.bayti.screensaver": "ignore"}, "APP_AUTO_START": {}})
+check("a TCL that keeps refusing: a !! line that names the app and what to do", "!! Auto-start (TCL): not allowed for" in out and "sa.bayti.home(ignore)" in out, out)
 rc, out, log, st = run(ops={"AUTO_START": {}, "APP_AUTO_START": {}})
 check("a TCL with neither op: nothing to allow, no !! line", "!!" not in out, out)
-rc, out, log, st = run("check", ops={"AUTO_START": {"sa.urtv.home": "ignore", "sa.urtv.screensaver": "allow"}, "APP_AUTO_START": {}})
-check("check only reads: no appops set, and a refused app is reported", "appops set" not in log and "!! Auto-start (TCL)" in out and "sa.urtv.home(ignore)" in out, out + log)
-rc, out, log, st = run(installed=["sa.urtv.screensaver"], ops={"AUTO_START": {"sa.urtv.screensaver": "ignore"}, "APP_AUTO_START": {}})
-check("the home app is not installed (SKIP_LAUNCHER): only the screensaver", out == "Auto-start (TCL): sa.urtv.screensaver allow" and "appops set sa.urtv.home" not in log, out)
+rc, out, log, st = run("check", ops={"AUTO_START": {"sa.bayti.home": "ignore", "sa.bayti.screensaver": "allow"}, "APP_AUTO_START": {}})
+check("check only reads: no appops set, and a refused app is reported", "appops set" not in log and "!! Auto-start (TCL)" in out and "sa.bayti.home(ignore)" in out, out + log)
+rc, out, log, st = run(installed=["sa.bayti.screensaver"], ops={"AUTO_START": {"sa.bayti.screensaver": "ignore"}, "APP_AUTO_START": {}})
+check("the home app is not installed (SKIP_LAUNCHER): only the screensaver", out == "Auto-start (TCL): sa.bayti.screensaver allow" and "appops set sa.bayti.home" not in log, out)
 print("\nall auto-start checks passed" if not failed else f"\n{failed} failed")
 sys.exit(1 if failed else 0)

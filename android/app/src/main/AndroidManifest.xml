@@ -9,20 +9,20 @@
 
     <!-- the launcher (same signing key) reads the settings for its home-screen card -->
     <permission
-        android:name="sa.urtv.screensaver.READ_CONFIG"
+        android:name="sa.bayti.screensaver.READ_CONFIG"
         android:protectionLevel="signature" />
 
     <!-- the launcher adds, finishes and deletes «المهام» through the same provider -->
     <permission
-        android:name="sa.urtv.screensaver.WRITE_TASKS"
+        android:name="sa.bayti.screensaver.WRITE_TASKS"
         android:protectionLevel="signature" />
 
     <!-- the launcher says what it is playing, for the screen's «يُتلى الآن» card (same signing key) -->
-    <uses-permission android:name="sa.urtv.home.READ_NOW_PLAYING" />
+    <uses-permission android:name="sa.bayti.home.READ_NOW_PLAYING" />
 
     <!-- opens the launcher's «ترتيب المفضلة» from settings -->
     <queries>
-        <package android:name="sa.urtv.home" />
+        <package android:name="sa.bayti.home" />
     </queries>
 
     <uses-feature android:name="android.software.leanback" android:required="false" />
@@ -89,21 +89,21 @@
             android:exported="true"
             android:permission="android.permission.DUMP">
             <intent-filter>
-                <action android:name="sa.urtv.screensaver.GET" />
-                <action android:name="sa.urtv.screensaver.SET" />
-                <action android:name="sa.urtv.screensaver.CITIES" />
-                <action android:name="sa.urtv.screensaver.UPDATE" />
-                <action android:name="sa.urtv.screensaver.TASKS" />
-                <action android:name="sa.urtv.screensaver.PHOTOS" />
+                <action android:name="sa.bayti.screensaver.GET" />
+                <action android:name="sa.bayti.screensaver.SET" />
+                <action android:name="sa.bayti.screensaver.CITIES" />
+                <action android:name="sa.bayti.screensaver.UPDATE" />
+                <action android:name="sa.bayti.screensaver.TASKS" />
+                <action android:name="sa.bayti.screensaver.PHOTOS" />
             </intent-filter>
         </receiver>
 
         <provider
             android:name=".ConfigProvider"
-            android:authorities="sa.urtv.screensaver.config"
+            android:authorities="sa.bayti.screensaver.config"
             android:exported="true"
-            android:readPermission="sa.urtv.screensaver.READ_CONFIG"
-            android:writePermission="sa.urtv.screensaver.WRITE_TASKS">
+            android:readPermission="sa.bayti.screensaver.READ_CONFIG"
+            android:writePermission="sa.bayti.screensaver.WRITE_TASKS">
             <!-- the shell hands over a photo here (`content write`, optimize/photos.sh); DUMP as for SaverReceiver -->
             <path-permission
                 android:path="/own-in"

@@ -5,13 +5,13 @@
 # AUTO_START setting so key helpers and Sleep Timer survive reboot», #1143, and the install scripts of their add-ons): the op
 # is AUTO_START on G08 builds and APP_AUTO_START on G10, other TVs do not know it, and without `appops write-settings` the
 # grant does not reach the disk before the next restart.
-#   optimize/autostart.sh           allow it for sa.urtv.home and sa.urtv.screensaver on a TCL, then say what the TV answers
+#   optimize/autostart.sh           allow it for sa.bayti.home and sa.bayti.screensaver on a TCL, then say what the TV answers
 #   optimize/autostart.sh check     only say it (the lines report.md gets): «Auto-start: …», or a !! line when a TCL refuses
 set -euo pipefail
 cd "$(dirname "$0")/.."
 PY="${PY:-optimize/venv/bin/python}"
 tv() { "$PY" -I optimize/tv.py "$@"; }
-PKGS=(sa.urtv.home sa.urtv.screensaver)
+PKGS=(sa.bayti.home sa.bayti.screensaver)
 
 is_tcl() {
   local who

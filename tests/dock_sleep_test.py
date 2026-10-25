@@ -27,7 +27,7 @@ def check(name, ok, detail=""):
     print(("PASS " if ok else "FAIL ") + name + ("" if ok else "  -> " + str(detail)))
     failed += not ok
 
-A = "am broadcast -n sa.urtv.home/.DockReceiver -a sa.urtv.home.SLEEP_TV"
+A = "am broadcast -n sa.bayti.home/.DockReceiver -a sa.bayti.home.SLEEP_TV"
 rc, out, sent = run("sleep")
 check("sleep: no argument asks how it stands", rc == 0 and sent == [A] and out.strip() == "sleep: ok", (rc, out, sent))
 for m in ("15", "30", "60", "90", "1", "600"):
@@ -38,7 +38,7 @@ check("sleep cancel: stops it", rc == 0 and sent == [A + " --ei minutes 0"], sen
 for bad, why in [("abc", "words"), ("-5", "a negative number"), ("1.5", "a fraction"), ("601", "over 600 minutes"), ("30; reboot", "a shell command"), ("", "nothing")]:
     rc, out, sent = run("sleep", bad)
     check(f"sleep: refuses {why}, sends nothing", rc != 0 and sent == [""], (rc, out, sent))
-SVC = "sa.urtv.home/sa.urtv.home.SleepService"
+SVC = "sa.bayti.home/sa.bayti.home.SleepService"
 rc, out, sent = run("sleep-setup")
 check("sleep-setup: nothing enabled yet: turns on the sleep service alone, and accessibility",
       rc == 0 and sent == ["settings get secure enabled_accessibility_services", "settings put secure enabled_accessibility_services " + SVC,

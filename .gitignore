@@ -23,8 +23,8 @@ optimize/lists/mine.txt
 /unsplash/
 /quran-verify/
 
-# Thmanyah: its licence allows the files only inside a built product, so they come from the private
-# tshi-dev/urtv-fonts repo at build time (CI), never from here; urtv.html inlines them, so it is not committed either
+# Bayti TV's font is Tajawal (SIL OFL, committed in assets/fonts and the launcher's assets). UrTV's Thmanyah may only ship
+# inside a built product: never commit a copy of it. urtv.html is built from what is committed (3 MB)
 assets/fonts/Thmanyah*.woff2
 android/launcher/src/main/assets/fonts/Thmanyah*.otf
 dist/urtv.html

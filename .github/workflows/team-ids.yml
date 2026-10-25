@@ -28,7 +28,7 @@ on:
       - '.github/tools/teams-cache.json'
       - '.github/workflows/team-ids.yml'
       - 'assets/shared/teams-ar.json'
-      - 'android/app/src/main/java/sa/urtv/screensaver/Prefs.java'
+      - 'android/app/src/main/java/sa/bayti/screensaver/Prefs.java'
 
 permissions:
   contents: write

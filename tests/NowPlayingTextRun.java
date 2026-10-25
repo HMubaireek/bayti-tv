@@ -1,4 +1,4 @@
-package sa.urtv.home.tilawah;
+package sa.bayti.home.tilawah;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

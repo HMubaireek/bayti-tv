@@ -1,11 +1,11 @@
 # Tilawah «تلاوة» — the Quran, the radio and the adhan
 
-The «تلاوة» screen is part of the **home app** (`sa.urtv.home`), not an app of its own: the pill in the top bar
+The «تلاوة» screen is part of the **home app** (`sa.bayti.home`), not an app of its own: the pill in the top bar
 opens it, and it is never listed among the TV's apps. It plays the Quran only — forty reciters' Hafs
 murattal (114 surahs each) and live Quran radio — plus the five daily adhans at Umm al-Qura times.
 There is no local/USB music, no Spotify or YouTube Music, no account, no ads and no analytics.
 
-Package `sa.urtv.home` · classes `sa.urtv.home.tilawah` · label «تلاوة» · minSdk 26, targetSdk 30.
+Package `sa.bayti.home` · classes `sa.bayti.home.tilawah` · label «تلاوة» · minSdk 26, targetSdk 30.
 
 ## What is in here
 
@@ -92,7 +92,7 @@ right and the left arrow to the left.
   without the screensaver, `config.xml`'s `latitude`, `longitude` and `timezone` are used.
 - **The switch is off by default.** «الأذان التلقائي» turns it on; the choice is remembered.
 - **The alarm** is one `AlarmManager` alarm for the next of the five prayers (action `ADHAN_ALARM`, naming the receiver; the
-  shell's `sa.urtv.home.ADHAN` is «adhan now» and reaches `MusicReceiver` only). It is exact when Android allows it; from
+  shell's `sa.bayti.home.ADHAN` is «adhan now» and reaches `MusicReceiver` only). It is exact when Android allows it; from
   Android 12 without the exact-alarm permission the system may deliver it minutes late, and the adhan tab says so. It is put
   back when the adhan has played, after a reboot, after a clock or timezone change, after an update and when Aladhan's times
   arrive. The same prayer's adhan never plays twice (judged by the prayer's own time, so a preview of a muezzin five
@@ -154,10 +154,10 @@ playing=1|source=surah|reciter=sudais|reciter_name=عبدالرحمن السدي
 The raw broadcasts are the same actions:
 
 ```bash
-adb shell am broadcast -n sa.urtv.home/.tilawah.MusicReceiver -a sa.urtv.home.GET_PLAYER
-adb shell am broadcast -n sa.urtv.home/.tilawah.MusicReceiver -a sa.urtv.home.PLAY_SURAH --es reciter sudais --ei surah 1
-adb shell am broadcast -n sa.urtv.home/.tilawah.MusicReceiver -a sa.urtv.home.PLAY_RADIO --ei station 0
-adb shell am broadcast -n sa.urtv.home/.tilawah.MusicReceiver -a sa.urtv.home.ADHAN --ei voice 3
+adb shell am broadcast -n sa.bayti.home/.tilawah.MusicReceiver -a sa.bayti.home.GET_PLAYER
+adb shell am broadcast -n sa.bayti.home/.tilawah.MusicReceiver -a sa.bayti.home.PLAY_SURAH --es reciter sudais --ei surah 1
+adb shell am broadcast -n sa.bayti.home/.tilawah.MusicReceiver -a sa.bayti.home.PLAY_RADIO --ei station 0
+adb shell am broadcast -n sa.bayti.home/.tilawah.MusicReceiver -a sa.bayti.home.ADHAN --ei voice 3
 ```
 
 ## Catalog

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- the settings' dialogs: no grey system dialog, the glass of the «تلاوة وأذان» screens (SettingsActivity.Dlg also puts Thmanyah on their words) -->
+    <!-- the settings' dialogs: no grey system dialog, the glass of the «تلاوة وأذان» screens (SettingsActivity.Dlg also puts Tajawal on their words) -->
     <style name="UrDialog" parent="android:Theme.Material.Dialog.Alert">
         <item name="android:windowBackground">@drawable/glass_dialog</item>
         <item name="android:textColorPrimary">#F6EFE0</item>

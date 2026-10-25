@@ -1,4 +1,4 @@
-package sa.urtv.screensaver;
+package sa.bayti.screensaver;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

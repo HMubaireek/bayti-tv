@@ -11,7 +11,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-HOME = ROOT / "android/launcher/src/main/java/sa/urtv/home"
+HOME = ROOT / "android/launcher/src/main/java/sa/bayti/home"
 failed = 0
 def check(name, ok, detail=""):
     global failed
@@ -42,7 +42,7 @@ cases = [l.split("\t") for l in (ROOT / "tests/pill_text_cases.tsv").read_text(e
 with tempfile.TemporaryDirectory() as tmp:
     subprocess.run(["javac", "-encoding", "UTF-8", "-d", tmp, str(HOME / "PillText.java"), str(HOME / "DigitsText.java"), str(ROOT / "tests/PillTextRun.java")], check=True,
                    capture_output=True)
-    out = subprocess.run(["java", "-Dfile.encoding=UTF-8", "-cp", tmp, "sa.urtv.home.PillTextRun", str(ROOT / "tests/pill_text_cases.tsv")],
+    out = subprocess.run(["java", "-Dfile.encoding=UTF-8", "-cp", tmp, "sa.bayti.home.PillTextRun", str(ROOT / "tests/pill_text_cases.tsv")],
                          check=True, capture_output=True).stdout
 got = out.decode("utf-8").split("\n")
 for c, g in zip(cases, got):

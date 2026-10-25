@@ -9,10 +9,10 @@ must never be committed.
   python .github/tools/make_signing_key.py
 
 With GitHub CLI installed and signed in (`gh auth login`), it stores both secrets in the repository itself and
-prints nothing secret. Without it, it prints them, for GitHub: the repository → Settings → Secrets and variables →
+prints nothing secret. Without it, it stores nothing and prints nothing secret either; add them by hand in GitHub: the repository → Settings → Secrets and variables →
 Actions → New repository secret, twice:
-  ANDROID_KEYSTORE_B64       the long text it prints
-  ANDROID_KEYSTORE_PASSWORD  the password it prints
+  ANDROID_KEYSTORE_B64       the .p12 file in base64
+  ANDROID_KEYSTORE_PASSWORD  the password file
 The builds sign with it from then on (CI refuses to build without it). TVs that have apps signed with another
 key need them installed again once (optimize/install.sh does that by itself; their settings start over).
 """
@@ -31,12 +31,12 @@ from cryptography.hazmat.primitives.serialization import pkcs12
 from cryptography.x509.oid import NameOID
 
 ALIAS = b"urtv"   # android/*/build.gradle signs with this alias
-REPO = "tshi-dev/UrTV"
+REPO = "HMubaireek/bayti-tv"
 
 
 def make(password):
     key = rsa.generate_private_key(public_exponent=65537, key_size=4096)
-    name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "UrTV"), x509.NameAttribute(NameOID.ORGANIZATION_NAME, "UrTV")])
+    name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "Bayti TV"), x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Bayti TV")])
     now = datetime.datetime.now(datetime.timezone.utc)
     cert = (x509.CertificateBuilder().subject_name(name).issuer_name(name).public_key(key.public_key())
             .serial_number(x509.random_serial_number()).not_valid_before(now)
@@ -47,14 +47,14 @@ def make(password):
 
 
 def main():
-    out = Path.home() / "urtv-signing-key.p12"
+    out = Path.home() / "bayti-signing-key.p12"
     if out.exists():
         sys.exit(f"{out} already exists: that is your key. Use it, or move it away first to make a new one.")
     password = secrets.token_urlsafe(30)
     data = make(password)
     out.write_bytes(data)
-    (Path.home() / "urtv-signing-key-password.txt").write_text(password + "\n")
-    print(f"Key saved to {out}, its password to {Path.home() / 'urtv-signing-key-password.txt'}")
+    (Path.home() / "bayti-signing-key-password.txt").write_text(password + "\n")
+    print(f"Key saved to {out}, its password to {Path.home() / 'bayti-signing-key-password.txt'}")
     print("Keep both somewhere safe (a password manager, a USB stick); never commit them.\n")
     secret = {"ANDROID_KEYSTORE_B64": base64.b64encode(data).decode(), "ANDROID_KEYSTORE_PASSWORD": password}
     gh = gh_ready()
@@ -63,9 +63,9 @@ def main():
             subprocess.run([gh, "secret", "set", name, "--repo", REPO], input=value, text=True, check=True)
         print(f"Both secrets are now in {REPO}. The next build signs with this key.")
         return
-    print("GitHub CLI isn't signed in, so add these two secrets by hand (see the top of this file):\n")
-    for name, value in secret.items():
-        print(f"{name}:\n{value}\n")
+    # never printed: a terminal's scrollback or an agent's log would keep the key
+    print("GitHub CLI isn't signed in (gh auth login), so the secrets were not stored. Add them by hand from the two files above:\n"
+          "ANDROID_KEYSTORE_B64 = the .p12 file in base64, ANDROID_KEYSTORE_PASSWORD = the password file.")
 
 
 def gh_ready():

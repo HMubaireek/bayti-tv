@@ -13,19 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # Thmanyah's licence allows its files only inside a built product: they live in the private
-      # tshi-dev/urtv-fonts and are put in place here, never committed to this repository
-      - uses: actions/checkout@v4
-        with:
-          repository: tshi-dev/urtv-fonts
-          token: ${{ secrets.FONTS_TOKEN }}
-          path: .fonts-private
-      - name: Private fonts
-        run: |
-          cp .fonts-private/web/*.woff2 assets/fonts/
-          mkdir -p android/launcher/src/main/assets/fonts
-          cp .fonts-private/android/*.otf android/launcher/src/main/assets/fonts/
-          rm -rf .fonts-private
+      # the font, Tajawal (SIL OFL), is committed in assets/fonts and the launcher's assets: nothing private to fetch
       - uses: actions/setup-node@v4
         with:
           node-version: 22

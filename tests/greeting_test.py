@@ -15,10 +15,10 @@ cases = [l.split("\t") for l in (ROOT / "tests/greeting_cases.tsv").read_text(en
          if l and not l.startswith("#")]
 with tempfile.TemporaryDirectory() as tmp:
     subprocess.run(["javac", "-encoding", "UTF-8", "-d", tmp,
-                    str(ROOT / "android/launcher/src/main/java/sa/urtv/home/GreetingText.java"),
-                    str(ROOT / "android/launcher/src/main/java/sa/urtv/home/DigitsText.java"),
+                    str(ROOT / "android/launcher/src/main/java/sa/bayti/home/GreetingText.java"),
+                    str(ROOT / "android/launcher/src/main/java/sa/bayti/home/DigitsText.java"),
                     str(ROOT / "tests/GreetingRun.java")], check=True)
-    out = subprocess.run(["java", "-Dfile.encoding=UTF-8", "-cp", tmp, "sa.urtv.home.GreetingRun",
+    out = subprocess.run(["java", "-Dfile.encoding=UTF-8", "-cp", tmp, "sa.bayti.home.GreetingRun",
                           str(ROOT / "tests/greeting_cases.tsv")], check=True, capture_output=True).stdout
 got = out.decode("utf-8").split("\n")
 failed = 0

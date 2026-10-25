@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-APP = ROOT / "android/app/src/main/java/sa/urtv/screensaver"
+APP = ROOT / "android/app/src/main/java/sa/bayti/screensaver"
 failed = 0
 def check(name, ok, detail=""):
     global failed

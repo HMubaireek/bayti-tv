@@ -2,7 +2,9 @@
 > far: a prayer-time calculation setting (Umm al-Qura, Shia Jaʿfari, Tehran, Gulf, Kuwait, Qatar, Dubai, MWL, Egypt, Karachi, ISNA);
 > free background photo sources (Wikimedia Commons nature, mountains, sunsets, space and picture of the day; Bing's photo of the day)
 > and more change intervals; a settings backup and restore (`optimize/settings.sh`); a fix for big installs timing out on TVs that
-> end background jobs (Sony BRAVIA); and community debloat lists no longer turning off streaming or casting apps.
+> end background jobs (Sony BRAVIA); and community debloat lists no longer turning off streaming or casting apps. Its apps are
+> `sa.bayti.screensaver` («شاشة بيتي») and `sa.bayti.home` («بيتي»), signed with Bayti TV's own key and released from this
+> repository, and its Arabic font is [Tajawal](https://fonts.google.com/specimen/Tajawal) (SIL OFL), committed with its licence.
 > UrTV's own code remains its author's: see [LICENSE](LICENSE) for what the licence covers.
 
 <p align="center"><img src=".github/brand/hero.png" alt="تلفزيونك · UrTV" width="100%"></p>
@@ -35,7 +37,7 @@
 
 ### ③ الصق هذا
 
-> ركّب تلفزيوني من https://github.com/tshi-dev/UrTV: انسخ المستودع واتبع `docs/SETUP-PROMPT.md` خطوة بخطوة. أنت على كمبيوتر متصل بنفس شبكة الواي فاي حقت التلفزيون.
+> ركّب تلفزيوني من https://github.com/HMubaireek/bayti-tv: انسخ المستودع واتبع `docs/SETUP-PROMPT.md` خطوة بخطوة. أنت على كمبيوتر متصل بنفس شبكة الواي فاي حقت التلفزيون.
 
 #### وش يصير بعد اللصق؟
 يسألك عن **مدينتك** و**أنديتك**، والتلفزيون يسألك **Allow** مرة وحدة، وبعدها خلّه يشتغل: 40 دقيقة وكم إعادة تشغيل.
@@ -71,7 +73,7 @@ Settings → About → press OK on **Build** 7 times. Then go to **Developer opt
 
 ### ③ Paste this
 
-> Set up my TV with https://github.com/tshi-dev/UrTV: clone it and follow `docs/SETUP-PROMPT.md` step by step. You are on a computer on the same Wi-Fi as the TV.
+> Set up my TV with https://github.com/HMubaireek/bayti-tv: clone it and follow `docs/SETUP-PROMPT.md` step by step. You are on a computer on the same Wi-Fi as the TV.
 
 #### What happens after pasting?
 It asks your **city** and your **clubs**, the TV asks **Allow** once, then leave it: 40 minutes, a few restarts.
@@ -102,7 +104,7 @@ screen: [docs/RECREATE-PROMPT.md](docs/RECREATE-PROMPT.md).
 | **Two free apps** | [TV Bro](https://github.com/truefedex/tv-bro), a web browser for the TV, and [SmartTube](https://github.com/yuliskov/SmartTube), YouTube without ads, from their own releases (skip with `SKIP_EXTRAS=1`) | `optimize/install.sh extras` |
 | **Speed-up** | Telemetry, ads and demos off (reversibly), closed apps frozen, Play Store kept from running in the background, faster animations | `optimize/` |
 
-**Download the apps yourself:** [releases/apk-latest](https://github.com/tshi-dev/UrTV/releases/tag/apk-latest)
+**Download the apps yourself:** [releases/apk-latest](https://github.com/HMubaireek/bayti-tv/releases/tag/apk-latest)
 (install with `adb install`; the agent route above also sets everything up).
 Every build is also kept as a numbered release (`v3.N`, the screensaver and home version), to go back
 to one: `APK_TAG=v3.N optimize/install.sh all`.
@@ -163,8 +165,8 @@ src/build.py          builds the two pages in dist/
 dist/urtv.html        stand-alone page, fonts and photos inlined: open in any browser (F = full screen), works offline.
                       Not committed: run python3 src/build.py; without the private Thmanyah files it uses the system's Arabic font
 dist/tv.html          light page the Android app loads (0.3 MB); the app serves fonts and photos from disk
-android/app           the screensaver app (sa.urtv.screensaver): DreamService, settings, auto-update
-android/launcher      the home screen (sa.urtv.home); sa.urtv.home.tilawah is «تلاوة»: catalog, player, adhan
+android/app           the screensaver app (sa.bayti.screensaver): DreamService, settings, auto-update
+android/launcher      the home screen (sa.bayti.home); sa.bayti.home.tilawah is «تلاوة»: catalog, player, adhan
 assets/               fonts, bundled photos, Arabic team names, verse and hadith texts
 photos/               the hosted photo set (5 shown per 4 days, rotating every 30 min)
 optimize/             TV tools (Python ADB client, no adb binary needed); lists/ says what may be turned off

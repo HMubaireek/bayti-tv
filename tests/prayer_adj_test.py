@@ -14,9 +14,9 @@ if not shutil.which("javac"):
     sys.exit(0)
 failed = False
 for run_class, sources in (
-        ("sa.urtv.screensaver.PrayerAdjRun", ["android/app/src/main/java/sa/urtv/screensaver/PrayerAdj.java", "android/app/src/main/java/sa/urtv/screensaver/DigitsText.java", "tests/PrayerAdjRun.java"]),
-        ("sa.urtv.home.tilawah.PrayerAdjustRun", ["android/launcher/src/main/java/sa/urtv/home/tilawah/PrayerAdjust.java",
-                                                  "android/launcher/src/main/java/sa/urtv/home/tilawah/PrayerMath.java", "tests/PrayerAdjustRun.java"])):
+        ("sa.bayti.screensaver.PrayerAdjRun", ["android/app/src/main/java/sa/bayti/screensaver/PrayerAdj.java", "android/app/src/main/java/sa/bayti/screensaver/DigitsText.java", "tests/PrayerAdjRun.java"]),
+        ("sa.bayti.home.tilawah.PrayerAdjustRun", ["android/launcher/src/main/java/sa/bayti/home/tilawah/PrayerAdjust.java",
+                                                  "android/launcher/src/main/java/sa/bayti/home/tilawah/PrayerMath.java", "tests/PrayerAdjustRun.java"])):
     with tempfile.TemporaryDirectory() as tmp:
         subprocess.run(["javac", "-encoding", "UTF-8", "-d", tmp, *[str(ROOT / s) for s in sources]], check=True)
         run = subprocess.run(["java", "-Dfile.encoding=UTF-8", "-cp", tmp, run_class], capture_output=True)

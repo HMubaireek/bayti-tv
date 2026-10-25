@@ -12,11 +12,11 @@ if not shutil.which("javac"):
     print("SKIP adhan bar: no javac here")
     sys.exit(0)
 cases = [l.split("\t") for l in (ROOT / "tests/adhan_bar_cases.tsv").read_text(encoding="utf-8").split("\n") if l and not l.startswith("#")]
-src = ROOT / "android/launcher/src/main/java/sa/urtv/home"
+src = ROOT / "android/launcher/src/main/java/sa/bayti/home"
 with tempfile.TemporaryDirectory() as tmp:
     subprocess.run(["javac", "-encoding", "UTF-8", "-d", tmp, str(src / "AdhanBarText.java"), str(src / "GreetingText.java"), str(src / "DigitsText.java"),
                     str(ROOT / "tests/AdhanBarRun.java")], check=True)
-    out = subprocess.run(["java", "-Dfile.encoding=UTF-8", "-cp", tmp, "sa.urtv.home.AdhanBarRun", str(ROOT / "tests/adhan_bar_cases.tsv")],
+    out = subprocess.run(["java", "-Dfile.encoding=UTF-8", "-cp", tmp, "sa.bayti.home.AdhanBarRun", str(ROOT / "tests/adhan_bar_cases.tsv")],
                          check=True, capture_output=True).stdout
 got = out.decode("utf-8").split("\n")
 failed = 0

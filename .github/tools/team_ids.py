@@ -63,7 +63,7 @@ WIKIDATA = "https://www.wikidata.org/w/api.php"
 SPARQL = "https://query.wikidata.org/sparql"
 ENWIKI = "https://en.wikipedia.org/w/api.php"
 UA = "UrTV club list (github.com/tshi-dev/UrTV)"
-PREFS = ROOT / "android/app/src/main/java/sa/urtv/screensaver/Prefs.java"
+PREFS = ROOT / "android/app/src/main/java/sa/bayti/screensaver/Prefs.java"
 OUT = Path(os.environ.get("TEAMS_OUT", "teams"))
 CACHE = ROOT / ".github/tools/teams-cache.json"
 FULL = os.environ.get("RUN_FULL") == "1"
@@ -130,7 +130,7 @@ FOOTBALL = re.compile(r"football|soccer", re.I)
 # a club's second side, not the club: "RCD Espanyol B", "Real Madrid Castilla", "Bayern Munich II", "Ajax U19"
 SIDE = re.compile(r"\s(?:B|C|II|III|Castilla|Atlètic|U-?\d{2}|Reserves?|Youth|Women|Femen\w*)$", re.I)
 NOT_A_CLUB = re.compile(r"women|female|ladies|futsal|basketball|handball|volleyball|youth|under-\d|reserve", re.I)
-# letters Thmanyah (the screen's font) lacks, as Arabic writes them
+# letters Tajawal (the screen's font) lacks, as Arabic writes them
 FONT_FIX = str.maketrans({"گ": "ج", "ژ": "ج", "ڨ": "ق", "ی": "ي", "ک": "ك", "ۀ": "ه", "ہ": "ه", "ھ": "ه", "ە": "ه",
                           "ۆ": "و", "ٱ": "ا"})
 

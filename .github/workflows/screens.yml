@@ -24,18 +24,7 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
-      # Thmanyah comes from the private fonts repository, as in android.yml: built in, never committed
-      - uses: actions/checkout@v4
-        with:
-          repository: tshi-dev/urtv-fonts
-          token: ${{ secrets.FONTS_TOKEN }}
-          path: .fonts-private
-      - name: Private fonts
-        run: |
-          cp .fonts-private/web/*.woff2 assets/fonts/
-          mkdir -p android/launcher/src/main/assets/fonts
-          cp .fonts-private/android/*.otf android/launcher/src/main/assets/fonts/
-          rm -rf .fonts-private
+      # the font, Tajawal (SIL OFL), is committed: nothing private to fetch
 
       - name: Build the page
         run: python3 src/build.py

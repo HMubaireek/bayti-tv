@@ -125,7 +125,7 @@ check("--probe with nothing saved: the first TV is saved", code == 0 and saved()
 # every kind of change is checked
 fresh(TV)
 for argv, why in [((PUT,), "settings put"), (("pm disable-user --user 0 com.x",), "pm disable"), (("pm enable com.x",), "pm enable"),
-                  (("am broadcast -n sa.urtv.home/.DockReceiver -a sa.urtv.home.RESET_DOCK",), "am broadcast"),
+                  (("am broadcast -n sa.bayti.home/.DockReceiver -a sa.bayti.home.RESET_DOCK",), "am broadcast"),
                   (("content insert --uri content://x",), "content"), (("input keyevent KEYCODE_HOME",), "input"),
                   (("pm install -r /data/local/tmp/x.apk",), "install"), (("echo x > /sdcard/y",), "a redirect"),
                   (("getprop x; reboot",), "reboot inside a line"), (("dumpsys x | sh",), "a pipe into sh")]:

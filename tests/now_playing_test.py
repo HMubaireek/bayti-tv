@@ -10,7 +10,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-HOME = ROOT / "android/launcher/src/main/java/sa/urtv/home"
+HOME = ROOT / "android/launcher/src/main/java/sa/bayti/home"
 TIL = HOME / "tilawah"
 failed = 0
 def check(name, ok, detail=""):
@@ -49,15 +49,15 @@ check("MainActivity: it takes the focus like a pill (D-pad order: ▶ from the f
 manifest_h = (ROOT / "android/launcher/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
 manifest_s = (ROOT / "android/app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
 provider = (TIL / "NowPlayingProvider.java").read_text(encoding="utf-8")
-bridge = (ROOT / "android/app/src/main/java/sa/urtv/screensaver/NowPlayingBridge.java").read_text(encoding="utf-8")
-screenview = (ROOT / "android/app/src/main/java/sa/urtv/screensaver/ScreenView.java").read_text(encoding="utf-8")
+bridge = (ROOT / "android/app/src/main/java/sa/bayti/screensaver/NowPlayingBridge.java").read_text(encoding="utf-8")
+screenview = (ROOT / "android/app/src/main/java/sa/bayti/screensaver/ScreenView.java").read_text(encoding="utf-8")
 check("screen card: the launcher's provider is read-only, one row only while a surah or a station PLAYS (not paused, not the adhan)",
       "if (s.show && s.playing) out.addRow" in provider and "return null;" in provider.split("getType")[1].split("}")[0]
       and "insert(Uri uri, ContentValues v) { return null; }" in provider)
 check("screen card: the provider needs a signature permission only the screensaver (same key) holds",
-      'android:name="sa.urtv.home.READ_NOW_PLAYING"' in manifest_h and 'android:protectionLevel="signature"' in manifest_h
-      and 'android:authorities="sa.urtv.home.nowplaying"' in manifest_h and 'android:readPermission="sa.urtv.home.READ_NOW_PLAYING"' in manifest_h
-      and 'uses-permission android:name="sa.urtv.home.READ_NOW_PLAYING"' in manifest_s)
+      'android:name="sa.bayti.home.READ_NOW_PLAYING"' in manifest_h and 'android:protectionLevel="signature"' in manifest_h
+      and 'android:authorities="sa.bayti.home.nowplaying"' in manifest_h and 'android:readPermission="sa.bayti.home.READ_NOW_PLAYING"' in manifest_h
+      and 'uses-permission android:name="sa.bayti.home.READ_NOW_PLAYING"' in manifest_s)
 check("screen card: the page gets one call, window.UrtvNative.nowPlaying(), on the screen only (not on the settings' previews); errors give an empty answer",
       '@JavascriptInterface' in bridge and bridge.count("@JavascriptInterface") == 1 and "catch (Exception ignored)" in bridge
       and 'if (screen) w.addJavascriptInterface(new NowPlayingBridge(c), "UrtvNative")' in screenview)
@@ -72,7 +72,7 @@ if not shutil.which("javac"):
 cases = [l.split("\t") for l in (ROOT / "tests/now_playing_cases.tsv").read_text(encoding="utf-8").split("\n") if l and not l.startswith("#")]
 with tempfile.TemporaryDirectory() as tmp:
     subprocess.run(["javac", "-encoding", "UTF-8", "-d", tmp, str(TIL / "NowPlayingText.java"), str(HOME / "DigitsText.java"), str(ROOT / "tests/NowPlayingTextRun.java")], check=True, capture_output=True)
-    out = subprocess.run(["java", "-Dfile.encoding=UTF-8", "-cp", tmp, "sa.urtv.home.tilawah.NowPlayingTextRun", str(ROOT / "tests/now_playing_cases.tsv")],
+    out = subprocess.run(["java", "-Dfile.encoding=UTF-8", "-cp", tmp, "sa.bayti.home.tilawah.NowPlayingTextRun", str(ROOT / "tests/now_playing_cases.tsv")],
                          check=True, capture_output=True).stdout
 got = out.decode("utf-8").split("\n")
 for c, g in zip(cases, got):

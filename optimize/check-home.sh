@@ -20,7 +20,7 @@ else
   # the first app of the favourites row (dock.sh show prints "dock: pkg1,pkg2,...")
   # shellcheck disable=SC2207
   candidates+=($(optimize/dock.sh show 2> /dev/null | sed -n 's/^dock: //p' | cut -d' ' -f1 | tr ',' '\n' \
-                 | grep -v '^sa\.urtv\.' | head -1 || true))
+                 | grep -v '^sa\.bayti\.' | head -1 || true))
 fi
 app=
 for c in "${candidates[@]}"; do
@@ -30,7 +30,7 @@ if [ -z "$app" ]; then echo "!! No app could be opened (tried ${candidates[*]}):
 tv "input keyevent KEYCODE_HOME" > /dev/null
 sleep 4
 front=$(front_now)
-if grep -q sa.urtv.home <<< "$front"; then
+if grep -q sa.bayti.home <<< "$front"; then
   echo "OK: Home opens تلفزيونك"
 else
   echo "!! Home opened: ${front:-nothing}"

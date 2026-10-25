@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-HOME = ROOT / "android/launcher/src/main/java/sa/urtv/home"
+HOME = ROOT / "android/launcher/src/main/java/sa/bayti/home"
 card = (HOME / "HomeCard.java").read_text(encoding="utf-8")
 main = (HOME / "MainActivity.java").read_text(encoding="utf-8")
 tasks = (HOME / "TasksActivity.java").read_text(encoding="utf-8")

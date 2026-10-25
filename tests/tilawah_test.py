@@ -14,7 +14,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MODULE = ROOT / "android/launcher"
 APP = MODULE / "src/main"
-JAVA = APP / "java/sa/urtv/home"
+JAVA = APP / "java/sa/bayti/home"
 TILAWAH = JAVA / "tilawah"
 ASSETS = APP / "assets/quran"
 A = "{http://schemas.android.com/apk/res/android}"
@@ -98,8 +98,8 @@ for name in ["Catalog", "MainActivity", "MusicReceiver", "MusicService", "Player
         check(f"{name}.java exists", False)
         continue
     body = text(source)
-    check(f"{name}.java is in sa.urtv.home.tilawah",
-          body.startswith("package sa.urtv.home.tilawah;"), body.splitlines()[0])
+    check(f"{name}.java is in sa.bayti.home.tilawah",
+          body.startswith("package sa.bayti.home.tilawah;"), body.splitlines()[0])
 
 # ---- cleartext is scoped to the Saudi radio's CDN and nothing else
 config = ET.parse(APP / "res/xml/network_security_config.xml").getroot()
@@ -154,7 +154,7 @@ expected = {"GET_PLAYER", "PLAY_SURAH", "PLAY_RADIO", "PAUSE", "RESUME", "TOGGLE
 check("ADB receiver exposes every action", expected <= {a.rsplit(".", 1)[-1] for a in actions},
       sorted(expected - {a.rsplit(".", 1)[-1] for a in actions}))
 check("the old listening actions are gone",
-      all("sa.urtv.listening" not in text(f) for f in [APP / "AndroidManifest.xml"]))
+      all("sa.bayti.listening" not in text(f) for f in [APP / "AndroidManifest.xml"]))
 
 adhan_receiver = next(r for r in app.findall("receiver") if r.get(A + "name") == ".tilawah.AdhanReceiver")
 check("the adhan receiver is shell-protected too",
@@ -163,7 +163,7 @@ check("the adhan receiver is shell-protected too",
 adhan_actions = {a.get(A + "name") for a in adhan_receiver.find("intent-filter").findall("action")}
 check("the adhan alarm is set again after a reboot",
       "android.intent.action.BOOT_COMPLETED" in adhan_actions, sorted(adhan_actions))
-check("the alarm names the receiver itself: its action is not in the filter", "sa.urtv.home.ADHAN" not in adhan_actions, sorted(adhan_actions))
+check("the alarm names the receiver itself: its action is not in the filter", "sa.bayti.home.ADHAN" not in adhan_actions, sorted(adhan_actions))
 
 permissions = {p.get(A + "name") for p in manifest.findall("uses-permission")}
 for permission in ["android.permission.WAKE_LOCK", "android.permission.FOREGROUND_SERVICE",
@@ -183,7 +183,7 @@ check("the home screen has the «تلاوة وأذان» pill", 'pill("تلاو�
 
 card = text(JAVA / "HomeCard.java")
 check("the home card reads the screensaver's settings",
-      "sa.urtv.screensaver.config" in card)
+      "sa.bayti.screensaver.config" in card)
 choice = text(JAVA / "HomeCardChoice.java")
 check("the home card falls back to the prayer times, after the last choice it read",
       "panel=prayers&widget=1" in choice and "HomeCardChoice.pick(" in card)
@@ -254,7 +254,7 @@ check("the adhan never becomes the «متابعة» row",
 check("the alarm is exact and survives idle",
       "setExactAndAllowWhileIdle" in text(TILAWAH / "AdhanScheduler.java"))
 check("device location comes from the screensaver",
-      "sa.urtv.screensaver.config" in text(TILAWAH / "Place.java"))
+      "sa.bayti.screensaver.config" in text(TILAWAH / "Place.java"))
 
 prefs_src = text(TILAWAH / "Prefs.java")
 check("the adhan is off until it is switched on", 'getBoolean("adhan_on", false)' in prefs_src)
@@ -273,22 +273,22 @@ check("CI no longer builds a listening APK", "urtv-listening" not in workflow)
 
 music = text(ROOT / "optimize/music.sh")
 check("music.sh drives the new component",
-      "sa.urtv.home/.tilawah.MusicReceiver" in music and "sa.urtv.listening" not in music)
-check("music.sh can test the adhan", "adhan voice" in music and "sa.urtv.home.ADHAN_" in music)
+      "sa.bayti.home/.tilawah.MusicReceiver" in music and "sa.bayti.listening" not in music)
+check("music.sh can test the adhan", "adhan voice" in music and "sa.bayti.home.ADHAN_" in music)
 install = text(ROOT / "optimize/install.sh")
 check("install still knows the two apps", "urtv-home.apk" in install and "urtv-screensaver.apk" in install)
 reset = text(ROOT / "optimize/reset.sh")
-check("reset still removes the old standalone app", "sa.urtv.listening" in reset)
+check("reset still removes the old standalone app", "sa.bayti.listening" in reset)
 check("reset puts the adhan appop back", "SCHEDULE_EXACT_ALARM" in reset)
 
 # ---- the adhan, hardened: one receiver per action, the duplicate guard, the prefetch, the volume
 def filters(name):   # the actions of one receiver's intent filter
     m = re.search(r'<receiver\s+android:name="\.tilawah\.' + name + r'".*?</receiver>', manifest, re.S)
     return re.findall(r'<action android:name="([^"]+)"', m.group(0))
-check("sa.urtv.home.ADHAN reaches MusicReceiver alone (the shell's «adhan now»)",
-      "sa.urtv.home.ADHAN" in filters("MusicReceiver") and "sa.urtv.home.ADHAN" not in filters("AdhanReceiver"), filters("AdhanReceiver"))
+check("sa.bayti.home.ADHAN reaches MusicReceiver alone (the shell's «adhan now»)",
+      "sa.bayti.home.ADHAN" in filters("MusicReceiver") and "sa.bayti.home.ADHAN" not in filters("AdhanReceiver"), filters("AdhanReceiver"))
 scheduler = text(TILAWAH / "AdhanScheduler.java")
-check("the alarm has its own action", 'ACTION = "sa.urtv.home.ADHAN_ALARM"' in scheduler)
+check("the alarm has its own action", 'ACTION = "sa.bayti.home.ADHAN_ALARM"' in scheduler)
 check("the alarm carries the prayer time it is for", "EXTRA_DUE" in scheduler and "putExtra(EXTRA_DUE" in scheduler)
 check("a restart cancels the old alarm of the old action", "LEGACY_ACTION" in scheduler and "cancelLegacy" in scheduler)
 check("the alarm says when exact alarms are refused", "exactAllowed" in scheduler and "canScheduleExactAlarms" in scheduler)
@@ -309,8 +309,8 @@ check("a download is kept only when it is whole (Content-Length)", "getContentLe
 check("the prefetch skips a failed voice and runs once a day", "prefetchDay" in adhan_src and "download(c, voice);   // a failure" in adhan_src)
 check("the volume row: left and right in steps of 10, OK does nothing",
       "changeVolume(" in main and "KIND_VOLUME" in main and "prefs.setAdhanVolume(prefs.adhanVolume() >= 100" not in main)
-check("music.sh sets the adhan volume", "adhan volume" in music and "sa.urtv.home.ADHAN_VOLUME" in music and "adhan_volume=" in music)
-check("MusicReceiver takes the volume", "sa.urtv.home.ADHAN_VOLUME" in text(TILAWAH / "MusicReceiver.java") and "ADHAN_VOLUME" in manifest)
+check("music.sh sets the adhan volume", "adhan volume" in music and "sa.bayti.home.ADHAN_VOLUME" in music and "adhan_volume=" in music)
+check("MusicReceiver takes the volume", "sa.bayti.home.ADHAN_VOLUME" in text(TILAWAH / "MusicReceiver.java") and "ADHAN_VOLUME" in manifest)
 check("the settings row warns when the alarm may be late", "KIND_EXACT" in main and "adhan_exact_title" in main
       and "ACTION_REQUEST_SCHEDULE_EXACT_ALARM" in main and "قد يتأخر الأذان دقائق" in text(APP / "res/values/strings.xml"))
 

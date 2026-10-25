@@ -1,4 +1,4 @@
-package sa.urtv.screensaver;
+package sa.bayti.screensaver;
 
 /** For tests/versions_test.py: Versions.java on a plain JVM. Prints PASS/FAIL lines. */
 public final class VersionsRun {

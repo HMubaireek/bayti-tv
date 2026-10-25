@@ -1,4 +1,4 @@
-package sa.urtv.home.tilawah;
+package sa.bayti.home.tilawah;
 
 import java.time.Instant;
 import java.util.Calendar;

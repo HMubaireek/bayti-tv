@@ -5,7 +5,7 @@ work every time and leave nothing behind. It takes 45 minutes to 2 hours (a TCL 
 need you, at the start. Paste this to an agent that runs commands on a computer on the same Wi-Fi as the TV
 (Codex: choose «Approve for me»):
 
-> Stress-test my TV with the `next` branch of https://github.com/tshi-dev/UrTV and follow its `docs/CYCLE-TEST-PROMPT.md`. You are on a computer on the same Wi-Fi as the TV.
+> Stress-test my TV with the `next` branch of https://github.com/HMubaireek/bayti-tv and follow its `docs/CYCLE-TEST-PROMPT.md`. You are on a computer on the same Wi-Fi as the TV.
 
 ---
 
@@ -21,8 +21,8 @@ commands in English. Everything except the start runs without me.
 
 ## Start (with me, 5 minutes)
 
-1. Get the `next` branch: `git clone -b next https://github.com/tshi-dev/UrTV` (on Windows into a short folder such
-   as `C:/UrTV`), or in an existing folder `git fetch origin`, `git checkout next`, `git pull`.
+1. Get the `next` branch: `git clone -b next https://github.com/HMubaireek/bayti-tv` (on Windows into a short folder such
+   as `C:/BaytiTV`), or in an existing folder `git fetch origin`, `git checkout next`, `git pull`.
 2. `optimize/setup.sh` (must end with «✓ Python ADB client»), `optimize/find-tv.sh --check`, `optimize/find-tv.sh`.
 3. Tell me to watch the TV and press Allow (tick «Always allow»), then without waiting for my reply:
    `optimize/venv/bin/python -I optimize/tv.py --probe`
@@ -56,7 +56,7 @@ Note the clock time at the start and end of each numbered step.
    quotes inside the Git Bash `-lc "…"` string: `optimize/share.sh --agent '<you and your model>' 'Cycle test …'`)
 5. Reset: `optimize/reset.sh`, then check it is really back as it came:
    - `optimize/shot.sh home after-reset-<n>`, and look at it: the TV's own home screen
-   - `optimize/venv/bin/python -I optimize/tv.py pm list packages sa.urtv` must print nothing
+   - `optimize/venv/bin/python -I optimize/tv.py pm list packages sa.bayti` must print nothing
    - `optimize/venv/bin/python -I optimize/tv.py pm list packages -d`: compare with the list `reset.sh` printed
      at its end in cycle 1's first reset; anything new is something left behind
 

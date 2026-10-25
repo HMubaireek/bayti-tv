@@ -27,7 +27,7 @@ def check(name, ok, detail=""):
     print(("PASS " if ok else "FAIL ") + name + ("" if ok else "  -> " + detail))
     failed += not ok
 
-A = "am broadcast -n sa.urtv.screensaver/.SaverReceiver -a sa.urtv.screensaver.SET "
+A = "am broadcast -n sa.bayti.screensaver/.SaverReceiver -a sa.bayti.screensaver.SET "
 bad = "it's"
 for words in (["city", bad], ["city", "x", bad, "46.7"], ["city", "x", "24.7", bad], ["city", "x", "24.7", "46.7", bad], ["teams", bad], ["card", bad],
               ["home-card", bad], ["greeting", bad], ["adhanbar", bad], ["genres", bad], ["leagues", bad], ["events", bad], ["langs", bad],
@@ -51,7 +51,7 @@ rc, out, sent = run("teams")
 check("teams with nothing: usage, nothing sent", rc != 0 and not sent and "none" in out, f"{rc} {sent!r} {out}")
 rc, out, sent = run("prayeradj", "on")
 check("prayeradj on: sent, and the home app is told to set its alarm again", rc == 0 and sent.splitlines()[0] == A + "--es prayeradj on"
-      and "sa.urtv.home/.tilawah.MusicReceiver -a sa.urtv.home.ADHAN_RESCHEDULE" in sent, sent)
+      and "sa.bayti.home/.tilawah.MusicReceiver -a sa.bayti.home.ADHAN_RESCHEDULE" in sent, sent)
 rc, out, sent = run("prayeradj", "fajr", "+2", "maghrib", "-1")
 check("prayeradj fajr +2 maghrib -1: each prayer's minutes quoted", rc == 0 and sent.splitlines()[0] == A + "--es adj_fajr '+2' --es adj_maghrib '-1'", sent)
 rc, out, sent = run("prayeradj", "الفجر", "0")

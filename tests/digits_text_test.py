@@ -9,8 +9,8 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-HOME = ROOT / "android/launcher/src/main/java/sa/urtv/home"
-APP = ROOT / "android/app/src/main/java/sa/urtv/screensaver"
+HOME = ROOT / "android/launcher/src/main/java/sa/bayti/home"
+APP = ROOT / "android/app/src/main/java/sa/bayti/screensaver"
 failed = 0
 def check(name, ok, detail=""):
     global failed
@@ -19,7 +19,7 @@ def check(name, ok, detail=""):
 
 a = (HOME / "DigitsText.java").read_text(encoding="utf-8")
 b = (APP / "DigitsText.java").read_text(encoding="utf-8")
-norm = lambda s: re.sub(r"public (static|final)", r"\1", s).replace("package sa.urtv.home;", "package X;").replace("package sa.urtv.screensaver;", "package X;")
+norm = lambda s: re.sub(r"public (static|final)", r"\1", s).replace("package sa.bayti.home;", "package X;").replace("package sa.bayti.screensaver;", "package X;")
 check("the screensaver app's DigitsText is the launcher's, with its package", norm(a).replace("public ", "") == norm(b).replace("public ", ""), "the two copies differ")
 check("Digits.java (the launcher's state) reads the setting like the other settings, through ConfigSnapshot, and keeps it",
       "ConfigSnapshot.read(c)" in (HOME / "Digits.java").read_text(encoding="utf-8") and "putBoolean(\"latin\"" in (HOME / "Digits.java").read_text(encoding="utf-8"))
@@ -35,7 +35,7 @@ if not shutil.which("javac"):
 cases = [l.split("\t") for l in (ROOT / "tests/digits_text_cases.tsv").read_text(encoding="utf-8").split("\n") if l and not l.startswith("#")]
 with tempfile.TemporaryDirectory() as tmp:
     subprocess.run(["javac", "-encoding", "UTF-8", "-d", tmp, str(HOME / "DigitsText.java"), str(ROOT / "tests/DigitsTextRun.java")], check=True, capture_output=True)
-    out = subprocess.run(["java", "-Dfile.encoding=UTF-8", "-cp", tmp, "sa.urtv.home.DigitsTextRun", str(ROOT / "tests/digits_text_cases.tsv")],
+    out = subprocess.run(["java", "-Dfile.encoding=UTF-8", "-cp", tmp, "sa.bayti.home.DigitsTextRun", str(ROOT / "tests/digits_text_cases.tsv")],
                          check=True, capture_output=True).stdout
 got = out.decode("utf-8").split("\n")
 for c, g in zip(cases, got):

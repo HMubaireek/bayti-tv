@@ -40,7 +40,7 @@ if [ -f optimize/run/backup.txt ]; then
   vals=$(tr -d '\r' < optimize/run/backup.txt | awk '/^== /{s=($2=="screensaver")} s&&!/^==/{print}')
   { read -r comps; read -r enabled; read -r timeout; } <<< "$vals"
   { # the screensaver the TV had (a component list; none then, or ours from an earlier setup: left deleted, the TV picks its own)
-    if [[ "${comps:-}" =~ ^[A-Za-z0-9_.]+/[A-Za-z0-9_.\$]+(,[A-Za-z0-9_.]+/[A-Za-z0-9_.\$]+)*$ ]] && [[ "$comps" != *sa.urtv.screensaver/* ]]; then
+    if [[ "${comps:-}" =~ ^[A-Za-z0-9_.]+/[A-Za-z0-9_.\$]+(,[A-Za-z0-9_.]+/[A-Za-z0-9_.\$]+)*$ ]] && [[ "$comps" != *sa.bayti.screensaver/* ]]; then
       echo "settings put secure screensaver_components '$comps'"
     fi
     for kv in "secure screensaver_enabled ${enabled:-}" "system screen_off_timeout ${timeout:-}"; do
@@ -55,8 +55,8 @@ fi
 
 echo "3/4 Removing our apps (old and new names; missing ones are skipped)…"
 # the appop the launcher was given for the adhan (it vanishes with the app anyway)
-tv "appops set sa.urtv.home SCHEDULE_EXACT_ALARM default" > /dev/null 2>&1 || true
-for p in sa.urtv.home sa.urtv.screensaver sa.urtv.listening sa.yourtv.home sa.yourtv.screensaver com.abdullah.tvhome com.abdullah.tvsaver; do
+tv "appops set sa.bayti.home SCHEDULE_EXACT_ALARM default" > /dev/null 2>&1 || true
+for p in sa.bayti.home sa.bayti.screensaver sa.bayti.listening sa.yourtv.home sa.yourtv.screensaver com.abdullah.tvhome com.abdullah.tvsaver; do
   tv "pm uninstall $p" | grep -q Success && echo "   removed $p" || true
 done
 # TV Bro and SmartTube: only if the setup put them there (not in the TV's package list saved before it)

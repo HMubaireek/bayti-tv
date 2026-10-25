@@ -1,4 +1,4 @@
-package sa.urtv.home;
+package sa.bayti.home;
 
 /** Prints CardBox's answers for the cases tests/card_box_test.py reads: one line "name w h" in pixels each. */
 public class CardBoxRun {

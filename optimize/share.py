@@ -98,7 +98,7 @@ def live_versions():
     answer (then report.md's line, written at the last setup, is all there is)."""
     tv_py = Path(__file__).resolve().parent / "tv.py"
     found = []
-    for package in ("sa.urtv.screensaver", "sa.urtv.home"):
+    for package in ("sa.bayti.screensaver", "sa.bayti.home"):
         try:
             out = subprocess.run([sys.executable, "-I", str(tv_py), f"dumpsys package {package} 2> /dev/null | grep -m1 versionName"],
                                  capture_output=True, text=True, timeout=60, env={**os.environ, "TV_TRIES": "1"})

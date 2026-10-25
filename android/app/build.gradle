@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace 'sa.urtv.screensaver'
+    namespace 'sa.bayti.screensaver'
     compileSdk 34
 
     defaultConfig {
-        applicationId 'sa.urtv.screensaver'
+        applicationId 'sa.bayti.screensaver'
         minSdk 21
         targetSdk 34
         // CI passes its run number so every build installs over the previous one; 3.x since the new signing key,
@@ -44,7 +44,7 @@ android {
 
     // the page is built by ../../src/build.py into dist/
     sourceSets {
-        main { assets.srcDirs = ['../../dist', '../launcher/src/main/assets', '../../assets'] }   // page, Thmanyah fonts, backgrounds/, shared/ (the club lists)
+        main { assets.srcDirs = ['../../dist', '../launcher/src/main/assets', '../../assets'] }   // page, Tajawal fonts, backgrounds/, shared/ (the club lists)
     }
 
     compileOptions {

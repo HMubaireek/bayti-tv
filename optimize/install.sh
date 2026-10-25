@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Download the latest APKs from GitHub and install them on the TV.
-#   optimize/install.sh saver      شاشة تلفزيونك: install + make it the screensaver
+#   optimize/install.sh saver      شاشة بيتي: install + make it the screensaver
 #   optimize/install.sh launcher   the home screen: install + make it the default Home
 #                                  (it carries the «تلاوة» screens: the Quran recitations and the radio)
 #   optimize/install.sh extras     two free apps from their own GitHub releases: TV Bro (a TV web browser,
@@ -8,11 +8,11 @@
 #                                  github.com/yuliskov/SmartTube), the build that fits the TV's processor
 #   optimize/install.sh all        both (saver, launcher)
 # The first install of the screensaver replaces an APK signed with another key: uninstall the old one first
-# (pm uninstall sa.urtv.screensaver) — this script does that only if a plain install fails.
+# (pm uninstall sa.bayti.screensaver) — this script does that only if a plain install fails.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 PY="${PY:-optimize/venv/bin/python}"
-REL=https://github.com/tshi-dev/UrTV/releases/download/${APK_TAG:-apk-latest}   # APK_TAG=v3.N: that numbered build
+REL=https://github.com/HMubaireek/bayti-tv/releases/download/${APK_TAG:-apk-latest}   # APK_TAG=v3.N: that numbered build
 what="${1:?usage: optimize/install.sh saver|launcher|extras|all}"
 case "$what" in saver|launcher|extras|all) ;; *) echo "usage: optimize/install.sh saver|launcher|extras|all" >&2; exit 2;; esac
 failed=0   # an extra that did not install: the rest are still tried, then run.sh must not count the step as done
@@ -73,7 +73,7 @@ pm_install() {   # $1 file name in /data/local/tmp, $2 package: pm's answer. A b
 }
 
 push_install() {   # $1 apk name, $2 package
-  if [ "$2" = sa.urtv.home ]; then   # the home app targets an older SDK than Play Protect likes (seen on Android 12-14)
+  if [ "$2" = sa.bayti.home ]; then   # the home app targets an older SDK than Play Protect likes (seen on Android 12-14)
     echo "للشخص: بعد لحظات ممكن تطلع على التلفزيون رسالة من Play Protect؛ إذا طلعت اضغط «تثبيت على أي حال» (Install anyway)."
   fi
   if ! curl_get -fsSL -o "optimize/$1" "$REL/$1"; then
@@ -95,7 +95,7 @@ push_install() {   # $1 apk name, $2 package
     if grep -qE 'UPDATE_INCOMPATIBLE|signatures do not match' <<< "$out"; then
       echo "An older $2 signed with another key is installed: removing it, then installing again."
       # removing the home app while the stock one is off would leave the TV with no home at all
-      [ "$2" = sa.urtv.home ] && "$PY" -I optimize/tv.py "pm enable ${STOCK%%/*}" > /dev/null || true
+      [ "$2" = sa.bayti.home ] && "$PY" -I optimize/tv.py "pm enable ${STOCK%%/*}" > /dev/null || true
       "$PY" -I optimize/tv.py "pm uninstall $2" || true
       out=$(pm_install "$1" "$2")
       grep -q Success <<< "$out" || { echo "!! Install of $1 failed again: $out"; exit 1; }
@@ -158,12 +158,12 @@ if [ "$what" = extras ]; then
 fi
 
 if [ "$what" = saver ] || [ "$what" = all ]; then
-  push_install urtv-screensaver.apk sa.urtv.screensaver
+  push_install urtv-screensaver.apk sa.bayti.screensaver
   printf '%s\n' \
     "settings put secure screensaver_enabled 1" \
-    "settings put secure screensaver_components sa.urtv.screensaver/.ScreenDream" \
-    "settings put secure screensaver_default_component sa.urtv.screensaver/.ScreenDream" \
-    "am start --activity-clear-task -n sa.urtv.screensaver/.SettingsActivity" \
+    "settings put secure screensaver_components sa.bayti.screensaver/.ScreenDream" \
+    "settings put secure screensaver_default_component sa.bayti.screensaver/.ScreenDream" \
+    "am start --activity-clear-task -n sa.bayti.screensaver/.SettingsActivity" \
     | "$PY" -I optimize/tv.py --batch
   echo "Screensaver installed and selected. Its settings screen is open on the TV."
 fi
@@ -178,10 +178,10 @@ if [ "$what" = launcher ] || [ "$what" = all ]; then
   echo "Stock home: $STOCK"
 
   # 1. The new home must be installed and working BEFORE anything is disabled.
-  push_install urtv-home.apk sa.urtv.home
-  "$PY" -I optimize/tv.py "pm grant sa.urtv.home android.permission.ACCESS_FINE_LOCATION" || true
+  push_install urtv-home.apk sa.bayti.home
+  "$PY" -I optimize/tv.py "pm grant sa.bayti.home android.permission.ACCESS_FINE_LOCATION" || true
   # exact alarms for the adhan (Android 12 and newer; older TVs need nothing)
-  "$PY" -I optimize/tv.py "appops set sa.urtv.home SCHEDULE_EXACT_ALARM allow" || true
+  "$PY" -I optimize/tv.py "appops set sa.bayti.home SCHEDULE_EXACT_ALARM allow" || true
 
   # The setup wizard (setupwraith) is turned off only when it really answers Home. Disabling it can delete the Wi-Fi network
   # that was saved during the first-run wizard (CleanYourTV's README, github.com/Gathin23/cleanyourtv, MIT: a network saved
@@ -234,11 +234,11 @@ if [ "$what" = launcher ] || [ "$what" = all ]; then
 
       # 3. Switch: the HOME role (Android 10+; the classic set-home-activity for older sets and as a backup), then
       #    the setup app off, then the stock home (this order avoided the black screen).
-      cmds=("cmd role add-role-holder --user 0 android.app.role.HOME sa.urtv.home"
-            "cmd package set-home-activity --user 0 sa.urtv.home/.MainActivity")
+      cmds=("cmd role add-role-holder --user 0 android.app.role.HOME sa.bayti.home"
+            "cmd package set-home-activity --user 0 sa.bayti.home/.MainActivity")
       [ "$wraith" != listed ] || cmds+=("pm disable-user --user 0 $WRAITH")
       cmds+=("pm disable-user --user 0 ${STOCK%%/*}"
-             "cmd package set-home-activity --user 0 sa.urtv.home/.MainActivity"
+             "cmd package set-home-activity --user 0 sa.bayti.home/.MainActivity"
              "am force-stop com.android.tv.settings"
              "input keyevent KEYCODE_HOME")
       stepout=$(printf '%s\n' "${cmds[@]}" | "$PY" -I optimize/tv.py --batch) || return 1
@@ -256,7 +256,7 @@ if [ "$what" = launcher ] || [ "$what" = all ]; then
     for _ in 1 2 3; do
       sleep 6
       top=$("$PY" -I optimize/tv.py "dumpsys activity activities | grep -E 'mResumedActivity|topResumedActivity'") || return 1
-      if grep -q sa.urtv.home <<< "$top"; then ours=yes; break; fi
+      if grep -q sa.bayti.home <<< "$top"; then ours=yes; break; fi
       "$PY" -I optimize/tv.py "input keyevent KEYCODE_HOME" > /dev/null || return 1
       # it took Home back after the switch: now it has to go (only if that cannot cost the Wi-Fi)
       if [ "$wraith" = no ] && wraith_answers_home; then wraith=listed; wraith_off || true; fi
@@ -265,7 +265,7 @@ if [ "$what" = launcher ] || [ "$what" = all ]; then
     "$PY" -I optimize/tv.py "touch /data/local/tmp/home_ok" || return 1
     # the switch may have fired already if ADB was very slow: then the stock home is back
     res=$("$PY" -I optimize/tv.py "cmd package resolve-activity --brief -c android.intent.category.HOME -a android.intent.action.MAIN") || return 1
-    grep -q sa.urtv.home <<< "$res" || return 3
+    grep -q sa.bayti.home <<< "$res" || return 3
   }
 
   rc=0; switch_home || rc=$?
@@ -282,7 +282,7 @@ if [ "$what" = launcher ] || [ "$what" = all ]; then
     fi
     res=$("$PY" -I optimize/tv.py "cmd package resolve-activity --brief -c android.intent.category.HOME -a android.intent.action.MAIN" 2> /dev/null) || res=""
     rc=0
-    if grep -q sa.urtv.home <<< "$res"; then
+    if grep -q sa.bayti.home <<< "$res"; then
       echo "ADB dropped during the switch; the TV is back and the new home is already set: checking it"
       switch_home verify || rc=$?
     else
@@ -320,8 +320,8 @@ fi
 # and share.sh agree. (Only when the report exists; no report, nothing to correct.)
 if [ "$what" != extras ] && [ -f "${URTV_RUN_DIR:-optimize/run}/report.md" ]; then
   rep="${URTV_RUN_DIR:-optimize/run}/report.md"
-  vs=$("$PY" -I optimize/tv.py "dumpsys package sa.urtv.screensaver 2> /dev/null | grep -m1 versionName" 2> /dev/null | sed 's/.*=//' | tr -d '\r ') || vs=""
-  vh=$("$PY" -I optimize/tv.py "dumpsys package sa.urtv.home 2> /dev/null | grep -m1 versionName" 2> /dev/null | sed 's/.*=//' | tr -d '\r ') || vh=""
+  vs=$("$PY" -I optimize/tv.py "dumpsys package sa.bayti.screensaver 2> /dev/null | grep -m1 versionName" 2> /dev/null | sed 's/.*=//' | tr -d '\r ') || vs=""
+  vh=$("$PY" -I optimize/tv.py "dumpsys package sa.bayti.home 2> /dev/null | grep -m1 versionName" 2> /dev/null | sed 's/.*=//' | tr -d '\r ') || vh=""
   if [ -n "$vs$vh" ]; then
     line="Versions: screensaver ${vs:-none}, home ${vh:-none}"
     if grep -q '^Versions:' "$rep"; then

@@ -37,7 +37,7 @@ OWN_MAX_BYTES=$((3 << 20))
 OWN_WORK=
 own_send() {   # $1 = the extras after -a ...ADHAN_OWN or VOICE; prints the receiver's answer; exit 1 on "error:"
   local out
-  out=$(tv "am broadcast -n sa.urtv.home/.tilawah.MusicReceiver -a $1" | sed -n '/data="/,$p' | sed '1s/.*data="//; $s/"$//')
+  out=$(tv "am broadcast -n sa.bayti.home/.tilawah.MusicReceiver -a $1" | sed -n '/data="/,$p' | sed '1s/.*data="//; $s/"$//')
   echo "$out"
   [[ "$out" != error:* ]]
 }
@@ -74,10 +74,10 @@ own_add() {   # $1 = the person's file: made small, uploaded, kept by the app, m
   tv "mkdir -p $OWN_STAGE" > /dev/null
   tv --push-b64 "$work/own.m4a" "$OWN_STAGE/in.m4a" | tail -1
   # the shell streams it into the app (its folder is private); where this TV lacks `content write`, the app reads it itself
-  tv "content write --uri content://sa.urtv.home.adhan/own-in < $OWN_STAGE/in.m4a" > /dev/null 2>&1 || true
-  sent=$(own_send "sa.urtv.home.ADHAN_OWN --es op add --ei size $bytes" || true)
+  tv "content write --uri content://sa.bayti.home.adhan/own-in < $OWN_STAGE/in.m4a" > /dev/null 2>&1 || true
+  sent=$(own_send "sa.bayti.home.ADHAN_OWN --es op add --ei size $bytes" || true)
   case "$sent" in error:*)
-    sent=$(own_send "sa.urtv.home.ADHAN_OWN --es op add --ei size $bytes --es path $OWN_STAGE/in.m4a" || true) ;;
+    sent=$(own_send "sa.bayti.home.ADHAN_OWN --es op add --ei size $bytes --es path $OWN_STAGE/in.m4a" || true) ;;
   esac
   tv "rm -f $OWN_STAGE/in.m4a" > /dev/null || true
   tv "rmdir $OWN_STAGE" > /dev/null 2>&1 || true
@@ -114,10 +114,10 @@ shift || true
 case "$command" in
   status)
     [ $# -eq 0 ] || usage
-    out=$(tv "am broadcast -n sa.urtv.home/.tilawah.MusicReceiver -a sa.urtv.home.GET_PLAYER")
+    out=$(tv "am broadcast -n sa.bayti.home/.tilawah.MusicReceiver -a sa.bayti.home.GET_PLAYER")
     data=$(printf '%s\n' "$out" | sed -n 's/.*data="\(.*\)"/\1/p' | tail -n 1)
     if [ -z "$data" ]; then
-      echo "No status from sa.urtv.home. Is the app installed and the TV reachable?" >&2
+      echo "No status from sa.bayti.home. Is the app installed and the TV reachable?" >&2
       exit 1
     fi
     printf '%s\n' "$data"
@@ -145,7 +145,7 @@ PY
     case "$reciter" in ''|*[!a-z]*) echo "Reciter id must be lowercase letters; run: optimize/music.sh reciters" >&2; exit 2;; esac
     case "$surah" in ''|*[!0-9]*) usage;; esac
     { [ "$surah" -ge 1 ] && [ "$surah" -le 114 ]; } || { echo "Surah must be 1-114." >&2; exit 2; }
-    tv "am broadcast -n sa.urtv.home/.tilawah.MusicReceiver -a sa.urtv.home.PLAY_SURAH --es reciter $reciter --ei surah $surah" > /dev/null
+    tv "am broadcast -n sa.bayti.home/.tilawah.MusicReceiver -a sa.bayti.home.PLAY_SURAH --es reciter $reciter --ei surah $surah" > /dev/null
     echo "Playing surah $surah by $reciter."
     ;;
 
@@ -153,14 +153,14 @@ PY
     [ $# -eq 1 ] || usage
     station=$1
     case "$station" in ''|*[!0-9]*) usage;; esac
-    tv "am broadcast -n sa.urtv.home/.tilawah.MusicReceiver -a sa.urtv.home.PLAY_RADIO --ei station $station" > /dev/null
+    tv "am broadcast -n sa.bayti.home/.tilawah.MusicReceiver -a sa.bayti.home.PLAY_RADIO --ei station $station" > /dev/null
     echo "Playing station $station."
     ;;
 
   pause|resume|toggle|next|prev|stop)
     [ $# -eq 0 ] || usage
     action=$(printf '%s' "$command" | tr '[:lower:]' '[:upper:]')
-    tv "am broadcast -n sa.urtv.home/.tilawah.MusicReceiver -a sa.urtv.home.$action" > /dev/null
+    tv "am broadcast -n sa.bayti.home/.tilawah.MusicReceiver -a sa.bayti.home.$action" > /dev/null
     echo "$action sent."
     ;;
 
@@ -171,7 +171,7 @@ PY
     digits=${seconds#-}
     case "$digits" in ''|*[!0-9]*) usage;; esac
     ms=$((seconds * 1000))
-    tv "am broadcast -n sa.urtv.home/.tilawah.MusicReceiver -a sa.urtv.home.SEEK_BY --ei delta $ms" > /dev/null
+    tv "am broadcast -n sa.bayti.home/.tilawah.MusicReceiver -a sa.bayti.home.SEEK_BY --ei delta $ms" > /dev/null
     echo "Seek ${seconds}s."
     ;;
 
@@ -179,7 +179,7 @@ PY
     [ $# -eq 1 ] || usage
     minutes=$1
     case "$minutes" in ''|*[!0-9]*) usage;; esac
-    tv "am broadcast -n sa.urtv.home/.tilawah.MusicReceiver -a sa.urtv.home.SLEEP --ei minutes $minutes" > /dev/null
+    tv "am broadcast -n sa.bayti.home/.tilawah.MusicReceiver -a sa.bayti.home.SLEEP --ei minutes $minutes" > /dev/null
     if [ "$minutes" -eq 0 ]; then echo "Sleep timer cancelled."; else echo "Stopping in $minutes min."; fi
     ;;
 
@@ -188,9 +188,9 @@ PY
     case "$what" in
       state)
         [ $# -le 1 ] || usage
-        out=$(tv "am broadcast -n sa.urtv.home/.tilawah.MusicReceiver -a sa.urtv.home.GET_PLAYER")
+        out=$(tv "am broadcast -n sa.bayti.home/.tilawah.MusicReceiver -a sa.bayti.home.GET_PLAYER")
         data=$(printf '%s\n' "$out" | sed -n 's/.*data="\(.*\)"/\1/p' | tail -n 1)
-        [ -n "$data" ] || { echo "No status from sa.urtv.home. Is the app installed and the TV reachable?" >&2; exit 1; }
+        [ -n "$data" ] || { echo "No status from sa.bayti.home. Is the app installed and the TV reachable?" >&2; exit 1; }
         printf '%s\n' "$data" | tr '|' '\n' | grep -E '^(adhan=|voice=|adhan_volume=|adhan_exact=|adhan_next|adhan_last|source=|playing=)'
         own=$(printf '%s\n' "$data" | tr '|' '\n' | sed -n 's/^own_bytes=//p')
         if [ "${own:-0}" -gt 0 ] 2> /dev/null; then
@@ -205,7 +205,7 @@ PY
         ;;
       own-clear)
         [ $# -eq 1 ] || usage
-        own_send "sa.urtv.home.ADHAN_OWN --es op clear" || exit 1
+        own_send "sa.bayti.home.ADHAN_OWN --es op clear" || exit 1
         echo "Your own recording is removed."
         ;;
       now)
@@ -213,16 +213,16 @@ PY
         if [ $# -eq 2 ]; then
           voice=$2
           case "$voice" in ''|*[!0-9]*) usage;; esac
-          tv "am broadcast -n sa.urtv.home/.tilawah.MusicReceiver -a sa.urtv.home.ADHAN --ei voice $voice" > /dev/null
+          tv "am broadcast -n sa.bayti.home/.tilawah.MusicReceiver -a sa.bayti.home.ADHAN --ei voice $voice" > /dev/null
         else
-          tv "am broadcast -n sa.urtv.home/.tilawah.MusicReceiver -a sa.urtv.home.ADHAN" > /dev/null
+          tv "am broadcast -n sa.bayti.home/.tilawah.MusicReceiver -a sa.bayti.home.ADHAN" > /dev/null
         fi
         echo "Adhan playing."
         ;;
       on|off)
         [ $# -eq 1 ] || usage
         action=$(printf '%s' "$what" | tr '[:lower:]' '[:upper:]')
-        tv "am broadcast -n sa.urtv.home/.tilawah.MusicReceiver -a sa.urtv.home.ADHAN_$action" > /dev/null
+        tv "am broadcast -n sa.bayti.home/.tilawah.MusicReceiver -a sa.bayti.home.ADHAN_$action" > /dev/null
         echo "Automatic adhan $what."
         ;;
       voice)
@@ -231,7 +231,7 @@ PY
         [ "$voice" != own ] || voice=0
         case "$voice" in ''|*[!0-9]*) usage;; esac
         { [ "$voice" -le 21 ] && { [ "$voice" -ge 1 ] || [ "$2" = own ]; }; } || { echo "The voice is 1-21, or own." >&2; exit 2; }
-        own_send "sa.urtv.home.VOICE --ei voice $voice" > /dev/null || { echo "There is no recording of your own on the TV yet (optimize/music.sh adhan add FILE)." >&2; exit 1; }
+        own_send "sa.bayti.home.VOICE --ei voice $voice" > /dev/null || { echo "There is no recording of your own on the TV yet (optimize/music.sh adhan add FILE)." >&2; exit 1; }
         if [ "$voice" -eq 0 ]; then echo "Adhan voice: your own recording."; else echo "Adhan voice $voice."; fi
         ;;
       volume)
@@ -239,7 +239,7 @@ PY
         percent=$2
         case "$percent" in ''|*[!0-9]*) usage;; esac
         { [ "$percent" -ge 10 ] && [ "$percent" -le 100 ]; } || { echo "The adhan volume is 10-100." >&2; exit 2; }
-        tv "am broadcast -n sa.urtv.home/.tilawah.MusicReceiver -a sa.urtv.home.ADHAN_VOLUME --ei percent $percent" > /dev/null
+        tv "am broadcast -n sa.bayti.home/.tilawah.MusicReceiver -a sa.bayti.home.ADHAN_VOLUME --ei percent $percent" > /dev/null
         echo "Adhan volume $percent%."
         ;;
       *)

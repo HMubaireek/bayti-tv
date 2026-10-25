@@ -44,7 +44,7 @@ case "$1" in
   "settings put global verifier_verify_adb_installs"*) log "put-${1##* }"; echo "${1##* }" > "$T/verifier" ;;
   "settings delete global verifier_verify_adb_installs") log delete; rm -f "$T/verifier" ;;
   "pm install -i com.android.vending"*) log vending; touch "$T/stays"; echo Success ;;
-  "pm list packages sa.urtv."*)
+  "pm list packages sa.bayti."*)
     pkg=${1##* }
     if [ -n "$VANISH" ] && { [ "$VANISH" = always ] || [ ! -f "$T/stays" ]; }; then log gone; else echo "package:$pkg"; fi ;;
   "pm install"*)
@@ -58,8 +58,8 @@ case "$1" in
   "cmd package query-activities"*) [ "$WRAITH_HOME" = yes ] && echo "com.google.android.tungsten.setupwraith/.RecoveryActivity"; echo "$QUERY_EXTRA" ;;
   "dumpsys wifi") case "$WIFI" in owned) echo "cname=com.google.android.tungsten.setupwraith" ;; other) echo "cname=android.uid.system" ;; esac ;;
   "pm disable-user --user 0 com.google.android.tungsten.setupwraith") log wraith-off ;;
-  *resolve-activity*) [ "$(cat "$T/home" 2>/dev/null)" = ours ] && echo sa.urtv.home/.MainActivity || echo stock/.Home ;;
-  *dumpsys*) [ "$(cat "$T/home" 2>/dev/null)" = ours ] && echo "mResumedActivity: sa.urtv.home" ;;
+  *resolve-activity*) [ "$(cat "$T/home" 2>/dev/null)" = ours ] && echo sa.bayti.home/.MainActivity || echo stock/.Home ;;
+  *dumpsys*) [ "$(cat "$T/home" 2>/dev/null)" = ours ] && echo "mResumedActivity: sa.bayti.home" ;;
   "touch /data/local/tmp/home_ok") log disarm; touch "$T/home_ok" ;;
 esac
 exit 0

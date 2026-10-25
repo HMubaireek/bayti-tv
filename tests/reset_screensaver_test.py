@@ -30,7 +30,7 @@ check("and enabled and the timeout with it", "settings put secure screensaver_en
 rc, sent, err = run(B.format("null", "null", "null"))
 check("null (never set): nothing is put back for the components, the others are deleted", not any("screensaver_components" in l for l in sent)
       and "settings delete secure screensaver_enabled" in sent and "settings delete system screen_off_timeout" in sent, str(sent))
-rc, sent, err = run(B.format("sa.urtv.screensaver/.ScreenDream", "1", "300000"))
+rc, sent, err = run(B.format("sa.bayti.screensaver/.ScreenDream", "1", "300000"))
 check("a backup taken with ours already set does not put ours back", not any("screensaver_components" in l for l in sent), str(sent))
 rc, sent, err = run(B.format("x'; reboot; '", "1", "300000"))
 check("a value that is not a component is not sent", not any("screensaver_components" in l for l in sent) and rc == 0, str(sent) + err)

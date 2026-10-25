@@ -20,7 +20,7 @@ Or in the Claude desktop app: the **Code** tab, with a **local** folder on this 
 
 ---
 
-Set up my Android TV / Google TV with **تلفزيونك** from https://github.com/tshi-dev/UrTV: a faster TV
+Set up my Android TV / Google TV with **تلفزيونك** from https://github.com/HMubaireek/bayti-tv: a faster TV
 (bloat off, safely), an Arabic home screen, and the screensaver «شاشة تلفزيونك». Talk to me in Arabic (or my
 language); keep commands in English.
 
@@ -67,7 +67,7 @@ Those defaults, unless I change them:
 - nothing from `optimize/lists/tcl-optional.txt` is disabled (`optimize/lists/mine.txt` stays empty);
 - if I pick the episodes card: all genres and languages.
 
-My city is checked later against `android/app/src/main/java/sa/urtv/screensaver/Cities.java`; if it isn't there,
+My city is checked later against `android/app/src/main/java/sa/bayti/screensaver/Cities.java`; if it isn't there,
 step 4 sets it with its coordinates (`city <name> <lat> <lon>`) without asking me again.
 
 ## 0. Can you reach my TV? (check this first, 1 minute)
@@ -118,8 +118,8 @@ On a Mac with only the system Python 3.9 and no Homebrew, `uv python install 3.1
 with `curl -LsSf https://astral.sh/uv/install.sh | sh`); the scripts find uv's Python by themselves.
 ```
 git config --global core.longpaths true   # Windows only, once (a deep folder breaks git: «Filename too long»)
-git clone --depth 1 https://github.com/tshi-dev/UrTV     # only the latest version: much faster. On Windows into a short folder: git clone --depth 1 https://github.com/tshi-dev/UrTV C:/UrTV (a deep one breaks Python and git: «Filename too long»)
-cd UrTV                                # on Windows: cd C:/UrTV
+git clone --depth 1 https://github.com/HMubaireek/bayti-tv     # only the latest version: much faster. On Windows into a short folder: git clone --depth 1 https://github.com/HMubaireek/bayti-tv C:/BaytiTV (a deep one breaks Python and git: «Filename too long»)
+cd bayti-tv                            # on Windows: cd C:/BaytiTV
 git pull                               # always the latest (a command of its own, not joined with the others)
 optimize/find-tv.sh --check            # Windows: always through Git Bash (below), never plain `python`
 ```
@@ -130,7 +130,7 @@ optimize/find-tv.sh --check            # Windows: always through Git Bash (below
   `winget install -e --id Git.Git --source winget`, `winget install -e --id Python.Python.3.12 --source winget`, `irm https://claude.ai/install.ps1 | iex`,
   then a new PowerShell window and `claude`). A chat that only links to my computer's folders or screen does not
   run commands on it, so it does not count. Give me the one line to paste there:
-  «Set up my TV with https://github.com/tshi-dev/UrTV: clone it and follow `docs/SETUP-PROMPT.md` step by step. You are on a computer on the same Wi-Fi as the TV.»
+  «Set up my TV with https://github.com/HMubaireek/bayti-tv: clone it and follow `docs/SETUP-PROMPT.md` step by step. You are on a computer on the same Wi-Fi as the TV.»
   Don't look for workarounds.
 
 **Android 11 or newer, and port 5555 does not answer: pair with «Wireless debugging».** Some Android 11+ TVs (a Skyworth on
@@ -154,7 +154,7 @@ the port changes: `tv.py` and `find-tv.sh` look it up again by themselves; only 
 Signs you are in such a place, if you want to know why: your address is not 192.168.x, 10.x or 172.16–31.x; the
 network interfaces are only `lo` and `tap0`; `echo > /dev/tcp/<router>/80` says `Network is unreachable`; or every
 address "answers" (a proxy). If `git clone` stops halfway (on Windows it can leave an empty folder, «No commits
-yet»), or an old UrTV folder is there without a working `.git`, delete that folder and clone again with `--depth 1`.
+yet»), or an old bayti-tv folder is there without a working `.git`, delete that folder and clone again with `--depth 1`.
 
 ## Rules (protective layer: these win over everything else here)
 
@@ -195,7 +195,7 @@ Lines starting with `!!` are the scripts telling you to stop and act. These are 
 | `0xC0000022` or `NtCreateDirectoryObject` starting Git Bash (Codex) | Codex's sandbox can't start Git Bash | run it outside the sandbox (step 0, «Codex on Windows») |
 | `you cannot ask for escalated permissions`, `rejected by policy` (Codex) | Codex's approvals are not on «Approve for me» | message 1 again, wait for «تم», then the same command |
 | `ModuleNotFoundError: No module named 'adb_shell'`, or `!! The Python packages aren't in optimize/venv` | `optimize/setup.sh` didn't finish (often pip had no network) | `optimize/setup.sh` again until it ends with «✓ Python ADB client»; its `!!` line says what is wrong. Then the same command; don't stop for this |
-| `!! This folder's path is too long for Windows`, `Filename too long`, or `DLL load failed … too long` | the UrTV folder sits too deep for Windows | clone it again into a short folder: `git clone -c core.longpaths=true https://github.com/tshi-dev/UrTV C:/UrTV`, and carry on there (or once, `git config --global core.longpaths true`, then clone again; a short folder like `C:/UrTV` is still best) |
+| `!! This folder's path is too long for Windows`, `Filename too long`, or `DLL load failed … too long` | the bayti-tv folder sits too deep for Windows | clone it again into a short folder: `git clone -c core.longpaths=true https://github.com/HMubaireek/bayti-tv C:/BaytiTV`, and carry on there (or once, `git config --global core.longpaths true`, then clone again; a short folder like `C:/BaytiTV` is still best) |
 | `!! No working Python 3 here`, or `python` opens the Microsoft Store | Python not installed, or only Windows' Store shortcut | ask me once, install it yourself (`winget install -e --id Python.Python.3.12 --source winget --accept-source-agreements --accept-package-agreements`), then the same command again in Git Bash |
 | `INSTALL_FAILED_VERIFICATION_FAILURE: Install not allowed` (seen on Android 12–14 for the home app, which targets an older SDK than Play Protect likes) | Play Protect checks apps installed over ADB and refused it | tell me, in Arabic, to watch the TV and press «تثبيت على أي حال» (Install anyway) if Play Protect shows a message (`install.sh` prints these words). `install.sh` switches `verifier_verify_adb_installs` to 0 for that install only, retries once and puts the old value back (it says so in one line); if it still fails, the line shows the TV's own message and the same words. **Never** turn the verifier off for the whole TV |
 | `Could not download …` on Windows with `CRYPT_E_NO_REVOCATION_CHECK` / `revocation` | Windows' curl (Schannel) can't reach the certificate revocation server | nothing: `install.sh` retries 3 times and, on that error, once more with `--ssl-revoke-best-effort`; if it keeps failing, check the internet/proxy and run the same command again |
@@ -231,7 +231,7 @@ Lines starting with `!!` are the scripts telling you to stop and act. These are 
 | `Unknown package` or `not installed` while disabling | that package is not on this model | nothing, normal |
 | `An older … signed with another key is installed` | an older build of our app | nothing, it reinstalls; redo step 4 for that app |
 | `!! Install of … failed` | usually storage, or a very old Android | stop and show me |
-| `!! Could not download …` (install.sh) | no such build at that tag, or no internet on this computer | check `APK_TAG` (unset = the latest) and the releases page https://github.com/tshi-dev/UrTV/releases, and that the computer is online; then the same command |
+| `!! Could not download …` (install.sh) | no such build at that tag, or no internet on this computer | check `APK_TAG` (unset = the latest) and the releases page https://github.com/HMubaireek/bayti-tv/releases, and that the computer is online; then the same command |
 | `!! GitHub rate limit, try later` (install.sh extras) | GitHub allows only a few anonymous requests an hour | wait a few minutes, then `optimize/run.sh` again (it redoes the extras step) |
 | `Done, with problems:` and `optimize/run.sh` exits 1 | every step ran, but `report.md` has `!!` lines (printed under it) | read them, fix what each says (this table), then `optimize/run.sh` again: only the report step is redone |
 | `ADB dropped during the switch; the TV is back, trying the switch again` | Wi-Fi ADB dropped while the home was being switched; the script waited for the TV (up to 6 minutes) and is doing the switch a second time, the safety switch armed again | nothing, wait; only if it ends in `!!` follow that line |
@@ -239,7 +239,7 @@ Lines starting with `!!` are the scripts telling you to stop and act. These are 
 | `!! This device is not an Android TV` (`run.sh: stopped at precheck`) | no `android.software.leanback`: a phone, a tablet or a box that is not Android TV | nothing was changed; give me the Arabic message in the line, and stop |
 | `!! WebView: system WebView is 66` (or any number below 80) | the screensaver page needs WebView/Chrome 80+ (`?.`, `??`) and would not run | tell me in Arabic to update «Android System WebView» from the Play Store (`optimize/precheck.sh webview-store` opens its page); then `optimize/precheck.sh` again. The setup and the report go on, the line stays until it is fixed |
 | `The setup wizard of this TV owns its saved Wi-Fi network: left on` or `!! The setup wizard of this TV answers Home and owns its saved Wi-Fi network` | disabling `com.google.android.tungsten.setupwraith` can delete the Wi-Fi network saved during the first-run wizard (two TCL sets lost their password; CleanYourTV documents it). `install.sh` turns the wizard off only when it really answers Home and the network is not its own | the first line: nothing to do. The `!!` line: nothing was changed; tell me what it says in Arabic (forget the network in Settings → Network and join it again), then the same command. `optimize/restore.sh` and the safety switch always turn the wizard back on |
-| `!! Auto-start (TCL): not allowed for sa.urtv.home(ignore)` | TCL firmware starts apps at boot only if they hold its auto-start op; ours need it (adhan alarms after a restart, the sleep service) | `optimize/autostart.sh` again; the report shows `Auto-start (TCL): … allow` after the restart. Not a TCL: «Auto-start: not a TCL», nothing to do |
+| `!! Auto-start (TCL): not allowed for sa.bayti.home(ignore)` | TCL firmware starts apps at boot only if they hold its auto-start op; ours need it (adhan alarms after a restart, the sleep service) | `optimize/autostart.sh` again; the report shows `Auto-start (TCL): … allow` after the restart. Not a TCL: «Auto-start: not a TCL», nothing to do |
 | `!! Home did not open the new launcher` | slow ADB, or firmware that pins its own home (a Fire TV often refuses another home) | leave the TV 5 minutes; `optimize/run.sh` once more; if again, `SKIP_LAUNCHER=1 optimize/run.sh` |
 | the TV has no home at all (black screen, Home does nothing) | our home app is gone while the stock home is off | `optimize/restore.sh` (no list: only the home screen), then `optimize/install.sh launcher`; more in `docs/OPTIMIZE.md`, «Home screen problems» |
 | `!! The stock home is not on screen` (reset) | the stock home was slow to start | ask me to press Home, then `optimize/reset.sh` again |
@@ -385,8 +385,8 @@ optimize/keep.sh                                  # must end with «Protected fe
 optimize/run.sh status                            # every step ✓, and «report: no !! lines»
 ```
 (One `!!` line is allowed there: «the screensaver may slow this TV». It is advice for me, not a failure: see step 7.)
-- `report.md` shows Home as `sa.urtv.home` (or the stock home if we used `SKIP_LAUNCHER=1`) and the screensaver
-  as `sa.urtv.screensaver`.
+- `report.md` shows Home as `sa.bayti.home` (or the stock home if we used `SKIP_LAUNCHER=1`) and the screensaver
+  as `sa.bayti.screensaver`.
 - You looked at the step 5 screenshots yourself and they show my city, my card and my favourites.
 
 ## 7. Tell me
@@ -420,7 +420,7 @@ optimize/run.sh status                            # every step ✓, and «report
   screensaver delay, and the optional TCL extras (the TCL tab and channels, game bar, T-Cast…).
 - How to undo, again: the folder's full path and the exact command to paste there
   (`optimize/reset.sh`; on Windows in Git Bash), what it brings back, and that if I ever want it, I can open an
-  agent on this computer and say «رجّع التلفزيون مثل ما كان: شغّل optimize/reset.sh في مجلد UrTV».
+  agent on this computer and say «رجّع التلفزيون مثل ما كان: شغّل optimize/reset.sh في مجلد BaytiTV».
 
 ### Offer: my own photos (once, after step 7; skip it if I'm in a hurry)
 

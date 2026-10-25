@@ -18,7 +18,7 @@ STAGE=/data/local/tmp/urtv-own
 tv() { "$PY" -I optimize/tv.py "$@"; }
 send() {   # $1 extras; prints the receiver's answer (the "data" of am broadcast); exit 1 on "error:"
   local out
-  out=$(tv "am broadcast -n sa.urtv.screensaver/.SaverReceiver -a sa.urtv.screensaver.PHOTOS $1" \
+  out=$(tv "am broadcast -n sa.bayti.screensaver/.SaverReceiver -a sa.bayti.screensaver.PHOTOS $1" \
     | sed -n '/data="/,$p' | sed '1s/.*data="//; $s/"$//')
   echo "$out"
   [[ "$out" != error:* ]]
@@ -69,7 +69,7 @@ case "${1:-}" in
       bytes=$(wc -c < "$work/$k.jpg" | tr -d ' ')
       tv --push-b64 "$work/$k.jpg" "$STAGE/in.jpg" | tail -1
       # the shell streams it into the app (its folder is private); where this TV lacks `content write`, the app reads it itself
-      tv "content write --uri content://sa.urtv.screensaver.config/own-in < $STAGE/in.jpg" > /dev/null 2>&1 || true
+      tv "content write --uri content://sa.bayti.screensaver.config/own-in < $STAGE/in.jpg" > /dev/null 2>&1 || true
       out=$(send "--es op add --ei size $bytes" || true)
       case "$out" in error:*)
         out=$(send "--es op add --ei size $bytes --es path $STAGE/in.jpg" || true) ;;

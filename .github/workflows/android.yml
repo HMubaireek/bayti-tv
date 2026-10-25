@@ -14,19 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # Thmanyah's licence allows its files only inside a built product: they live in the private
-      # tshi-dev/urtv-fonts and are put in place here, never committed to this repository
-      - uses: actions/checkout@v4
-        with:
-          repository: tshi-dev/urtv-fonts
-          token: ${{ secrets.FONTS_TOKEN }}
-          path: .fonts-private
-      - name: Private fonts
-        run: |
-          cp .fonts-private/web/*.woff2 assets/fonts/
-          mkdir -p android/launcher/src/main/assets/fonts
-          cp .fonts-private/android/*.otf android/launcher/src/main/assets/fonts/
-          rm -rf .fonts-private
+      # the font, Tajawal (SIL OFL), is committed in assets/fonts and the launcher's assets: nothing private to fetch
 
       - name: Build the page
         run: python3 src/build.py
@@ -97,7 +85,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v3.${{ github.run_number }}
-          name: UrTV 3.${{ github.run_number }}
+          name: Bayti TV 3.${{ github.run_number }}
           body: "Both apps at version 3.${{ github.run_number }}, built from ${{ github.sha }}"
           files: |
             urtv-screensaver.apk

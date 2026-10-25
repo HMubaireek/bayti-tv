@@ -71,7 +71,7 @@ def check(name, ok, detail=""):
     print(("PASS " if ok else "FAIL ") + name + ("" if ok else "  -> " + str(detail)))
     failed += not ok
 
-A = "am broadcast -n sa.urtv.screensaver/.SaverReceiver -a sa.urtv.screensaver.PHOTOS "
+A = "am broadcast -n sa.bayti.screensaver/.SaverReceiver -a sa.bayti.screensaver.PHOTOS "
 def photo(name, size=(3000, 2000)):
     p = os.path.join(tmp, name)
     im = Image.new("RGB", size, (30, 120, 60))
@@ -120,7 +120,7 @@ check("add: what is uploaded is resized (3000 px -> 1920 at most) and has no met
       im0.size == (1920, 1280) and im1.size == (1000, 600) and not im0.getexif() and b"SecretCam" not in open(os.path.join(kept, "0.jpg"), "rb").read(),
       (im0.size, im1.size))
 check("add: the shell streams it into the app, then the staging file goes",
-      sum("content write --uri content://sa.urtv.screensaver.config/own-in < /data/local/tmp/urtv-own/in.jpg" in s for s in sent) == 2
+      sum("content write --uri content://sa.bayti.screensaver.config/own-in < /data/local/tmp/urtv-own/in.jpg" in s for s in sent) == 2
       and any(s.startswith("rm -f /data/local/tmp/urtv-own/in.jpg") for s in sent), sent)
 check("add: ends with the list", "photos: 2 of 10" in out.split("added")[-1], out)
 

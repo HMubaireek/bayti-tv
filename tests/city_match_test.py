@@ -10,7 +10,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "android/app/src/main/java/sa/urtv/screensaver"
+SRC = ROOT / "android/app/src/main/java/sa/bayti/screensaver"
 NAMES = re.findall(r'\{"([^"]+)", "[\d.-]+", "[\d.-]+"\}', (SRC / "Cities.java").read_text(encoding="utf-8"))
 
 # typed -> the names it must find (all of them, in the list's order)
@@ -48,7 +48,7 @@ with tempfile.TemporaryDirectory() as tmp:
                         str(SRC / "TeamSearch.java"), str(ROOT / "tests/CityMatchRun.java")], capture_output=True, text=True)
     check("CityMatch.java compiles", r.returncode == 0, r.stderr[-600:])
     if r.returncode == 0:
-        r = subprocess.run([java, "-cp", str(tmp), "sa.urtv.screensaver.CityMatchRun", str(tmp / "queries.txt")], capture_output=True)
+        r = subprocess.run([java, "-cp", str(tmp), "sa.bayti.screensaver.CityMatchRun", str(tmp / "queries.txt")], capture_output=True)
         lines = r.stdout.decode("utf-8").split("\n")
         check("CityMatch.java runs", r.returncode == 0 and len(lines) > len(queries), r.stderr.decode()[-600:])
         got = [l.split("|") if l else [] for l in lines[:len(queries)]]

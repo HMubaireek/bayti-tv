@@ -1,4 +1,4 @@
-package sa.urtv.home;
+package sa.bayti.home;
 
 /** For tests/home_card_test.py: HomeCardChoice on the cases given as arguments, four per case:
  *  frag panel savedFrag savedPanel ("-" = null). Prints one line per case: the page, or "off". */

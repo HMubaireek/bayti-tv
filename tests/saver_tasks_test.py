@@ -28,7 +28,7 @@ def check(name, ok, detail=""):
     print(("PASS " if ok else "FAIL ") + name + ("" if ok else "  -> " + detail))
     failed += not ok
 
-A = "am broadcast -n sa.urtv.screensaver/.SaverReceiver -a sa.urtv.screensaver.TASKS "
+A = "am broadcast -n sa.bayti.screensaver/.SaverReceiver -a sa.bayti.screensaver.TASKS "
 rc, out, sent = run("list")
 check("list", rc == 0 and sent == A + "--es op list", sent)
 check("answer is the receiver's data", out.startswith("saved") and out.strip().endswith("1. x"), out)

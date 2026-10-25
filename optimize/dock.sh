@@ -14,12 +14,12 @@
 #   optimize/dock.sh sleep                 how the timer stands: minutes left, and what its end will do
 #   optimize/dock.sh sleep cancel          stop it
 #   optimize/dock.sh sleep-setup           turn on the sleep service (an accessibility service, once) so the end turns the screen off
-# The home screen redraws at once; the sleep timer's pill too. Only ADB can do this (sa.urtv.home/.DockReceiver needs the shell's DUMP).
+# The home screen redraws at once; the sleep timer's pill too. Only ADB can do this (sa.bayti.home/.DockReceiver needs the shell's DUMP).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 PY="${PY:-optimize/venv/bin/python}"
 send() {   # $1 action, $2 extra arguments; prints the receiver's answer (the "data" of am broadcast)
-  "$PY" -I optimize/tv.py "am broadcast -n sa.urtv.home/.DockReceiver -a sa.urtv.home.$1 ${2:-}" \
+  "$PY" -I optimize/tv.py "am broadcast -n sa.bayti.home/.DockReceiver -a sa.bayti.home.$1 ${2:-}" \
     | sed -n '/data="/,$p' | sed '1s/.*data="//; $s/"$//'
 }
 case "${1:-}:$#" in
@@ -47,7 +47,7 @@ case "${1:-}:$#" in
     esac
     send SLEEP_TV "--ei minutes $minutes" ;;
   sleep-setup:1)
-    svc="sa.urtv.home/sa.urtv.home.SleepService"
+    svc="sa.bayti.home/sa.bayti.home.SleepService"
     now=$("$PY" -I optimize/tv.py "settings get secure enabled_accessibility_services" | tail -n 1 | tr -d '\r')
     case "$now" in
       *"$svc"*) echo "the sleep service was already on" ;;

@@ -78,7 +78,7 @@ if [ "$3" = --batch ]; then
 fi
 echo "$3" >> "$SENT"
 case "$3" in
-  "pm list packages sa.urtv.screensaver") [ "${INSTALLED:-1}" = 1 ] && echo "package:sa.urtv.screensaver" ;;
+  "pm list packages sa.bayti.screensaver") [ "${INSTALLED:-1}" = 1 ] && echo "package:sa.bayti.screensaver" ;;
   *query-services*) printf '%s' "$STOCK" ;;
 esac
 exit 0
@@ -97,7 +97,7 @@ def run(cmd, bk=None, comp="null", enabled="1", stock="", installed="1"):
                             "INSTALLED": installed, "SAVER_BACKUP": bk or os.path.join(tmp, "no-backup.txt")})
     return r.returncode, r.stdout + r.stderr, open(log, encoding="utf-8").read().splitlines()
 
-OURS = "sa.urtv.screensaver/.ScreenDream"
+OURS = "sa.bayti.screensaver/.ScreenDream"
 puts = lambda sent: [l for l in sent if l.startswith("settings put") or l.startswith("settings delete")]
 
 rc, out, sent = run("off", bk=backup())
@@ -118,7 +118,7 @@ check("off: an inner class keeps its $ inside single quotes", "settings put secu
 rc, out, sent = run("off", bk=backup(comp="x; reboot"))
 check("off: a backup line that is not a component is never sent", rc == 0 and not any("reboot" in l for l in sent), str(sent))
 
-stock = "priority=0 preferredOrder=0 match=0x0 specificIndex=-1 isDefault=false\ncom.android.systemui/.Colors\ncom.google.android.backdrop/.Dream\nsa.urtv.screensaver/.ScreenDream\n"
+stock = "priority=0 preferredOrder=0 match=0x0 specificIndex=-1 isDefault=false\ncom.android.systemui/.Colors\ncom.google.android.backdrop/.Dream\nsa.bayti.screensaver/.ScreenDream\n"
 rc, out, sent = run("off", stock=stock)
 check("off, no backup: a stock dream the TV lists (never ours), preferring a known one",
       "settings put secure screensaver_components 'com.google.android.backdrop/.Dream'" in sent
@@ -127,7 +127,7 @@ rc, out, sent = run("off", bk=backup(comp="null"), stock="com.android.systemui/.
 check("off, backup without a screensaver: the stock one", "settings put secure screensaver_components 'com.android.systemui/.Colors'" in sent, str(sent))
 rc, out, sent = run("off", bk=backup(comp=OURS), stock="com.android.systemui/.Colors\n")
 check("off, a backup taken with ours already set: not used", "settings put secure screensaver_components 'com.android.systemui/.Colors'" in sent, str(sent))
-rc, out, sent = run("off", stock="sa.urtv.screensaver/.ScreenDream\n")
+rc, out, sent = run("off", stock="sa.bayti.screensaver/.ScreenDream\n")
 check("off, nothing else listed: screensavers off",
       puts(sent) == ["settings put secure screensaver_enabled 0", "settings delete secure screensaver_components",
                      "settings delete secure screensaver_default_component"] and "off" in out, str(sent))

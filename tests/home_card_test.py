@@ -9,7 +9,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "android/launcher/src/main/java/sa/urtv/home/HomeCardChoice.java"
+SRC = ROOT / "android/launcher/src/main/java/sa/bayti/home/HomeCardChoice.java"
 B = "file:///android_asset/web/tv.html#"
 # frag, panel (read now), saved frag, saved panel ("-" = nothing) -> the page
 CASES = [
@@ -45,7 +45,7 @@ with tempfile.TemporaryDirectory() as tmp:
     failed += not ok
     if ok:
         args = [a for c in CASES for a in c[:4]]
-        r = subprocess.run([java, "-cp", tmp, "sa.urtv.home.HomeCardChoiceRun", *args], capture_output=True, text=True)
+        r = subprocess.run([java, "-cp", tmp, "sa.bayti.home.HomeCardChoiceRun", *args], capture_output=True, text=True)
         got = r.stdout.splitlines()
         for c, g in zip(CASES, got):
             ok = g == c[4]

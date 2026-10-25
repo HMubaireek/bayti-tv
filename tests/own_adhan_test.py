@@ -21,16 +21,16 @@ A = "{http://schemas.android.com/apk/res/android}"
 app = ET.parse(ROOT / "android/launcher/src/main/AndroidManifest.xml").getroot().find("application")
 prov = next((p for p in app.findall("provider") if p.get(A + "name") == ".tilawah.OwnAdhanProvider"), None)
 check("manifest: the own-adhan door exists, is only for the shell (DUMP) and has its own authority",
-      prov is not None and prov.get(A + "permission") == "android.permission.DUMP" and prov.get(A + "authorities") == "sa.urtv.home.adhan",
+      prov is not None and prov.get(A + "permission") == "android.permission.DUMP" and prov.get(A + "authorities") == "sa.bayti.home.adhan",
       None if prov is None else prov.attrib)
-src = (ROOT / "android/launcher/src/main/java/sa/urtv/home/tilawah/OwnAdhanProvider.java").read_text(encoding="utf-8")
+src = (ROOT / "android/launcher/src/main/java/sa/bayti/home/tilawah/OwnAdhanProvider.java").read_text(encoding="utf-8")
 check("provider: write-only, one path (own-in), nothing can be read back",
       "MODE_WRITE_ONLY" in src and '"own-in"' in src and "MODE_READ" not in src and "return null; }" in src, "")
 receiver = next(r for r in app.findall("receiver") if r.get(A + "name") == ".tilawah.MusicReceiver")
 check("manifest: ADHAN_OWN is on the shell-protected receiver",
       receiver.get(A + "permission") == "android.permission.DUMP"
-      and "sa.urtv.home.ADHAN_OWN" in {a.get(A + "name") for a in receiver.find("intent-filter").findall("action")})
-own = (ROOT / "android/launcher/src/main/java/sa/urtv/home/tilawah/OwnAdhan.java").read_text(encoding="utf-8")
+      and "sa.bayti.home.ADHAN_OWN" in {a.get(A + "name") for a in receiver.find("intent-filter").findall("action")})
+own = (ROOT / "android/launcher/src/main/java/sa/bayti/home/tilawah/OwnAdhan.java").read_text(encoding="utf-8")
 check("the recording is in the app's private folder and nothing in the app sends it anywhere",
       "getFilesDir()" in own and not re.search(r"HttpURLConnection|openConnection|sendBroadcast|ACTION_SEND", own), "")
 check("a recording of the person's is never uploaded by share.py", "adhan-own" not in (ROOT / "optimize/share.py").read_text(encoding="utf-8"))
@@ -39,10 +39,10 @@ if not shutil.which("javac"):
     print("SKIP own adhan text: no javac here")
     sys.exit(1 if failed else 0)
 cases = [l.split("\t") for l in (ROOT / "tests/own_adhan_cases.tsv").read_text(encoding="utf-8").split("\n") if l and not l.startswith("#")]
-tile = ROOT / "android/launcher/src/main/java/sa/urtv/home/tilawah"
+tile = ROOT / "android/launcher/src/main/java/sa/bayti/home/tilawah"
 with tempfile.TemporaryDirectory() as tmp:
     subprocess.run(["javac", "-encoding", "UTF-8", "-d", tmp, str(tile / "OwnAdhanText.java"), str(ROOT / "tests/OwnAdhanRun.java")], check=True)
-    out = subprocess.run(["java", "-Dfile.encoding=UTF-8", "-cp", tmp, "sa.urtv.home.tilawah.OwnAdhanRun", str(ROOT / "tests/own_adhan_cases.tsv")],
+    out = subprocess.run(["java", "-Dfile.encoding=UTF-8", "-cp", tmp, "sa.bayti.home.tilawah.OwnAdhanRun", str(ROOT / "tests/own_adhan_cases.tsv")],
                          check=True, capture_output=True).stdout
 got = out.decode("utf-8").split("\n")
 for c, g in zip(cases, got):

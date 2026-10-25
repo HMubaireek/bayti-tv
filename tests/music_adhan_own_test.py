@@ -34,10 +34,10 @@ case "$3" in
       printf 'Broadcast completed: result=0, data="saved\nown: 40 KB (in use)"\n'
     fi ;;
   *ADHAN_OWN*"op clear"*) printf 'Broadcast completed: result=0, data="saved\nown: none"\n' ;;
-  *sa.urtv.home.VOICE*"--ei voice 0"*)
+  *sa.bayti.home.VOICE*"--ei voice 0"*)
     if [ -n "${FAKE_NO_OWN:-}" ]; then echo 'Broadcast completed: result=0, data="error: no recording of your own yet"'
     else printf 'Broadcast completed: result=0, data="saved\nown: 40 KB (in use)"\n'; fi ;;
-  *sa.urtv.home.VOICE*) printf 'Broadcast completed: result=0, data="saved\nown: none"\n' ;;
+  *sa.bayti.home.VOICE*) printf 'Broadcast completed: result=0, data="saved\nown: none"\n' ;;
 esac
 ''')
 os.chmod(fake_py, 0o755)
@@ -76,8 +76,8 @@ def check(name, ok, detail=""):
     print(("PASS " if ok else "FAIL ") + name + ("" if ok else "  -> " + str(detail)))
     failed += not ok
 
-OWN = "am broadcast -n sa.urtv.home/.tilawah.MusicReceiver -a sa.urtv.home.ADHAN_OWN "
-VOICE = "am broadcast -n sa.urtv.home/.tilawah.MusicReceiver -a sa.urtv.home.VOICE "
+OWN = "am broadcast -n sa.bayti.home/.tilawah.MusicReceiver -a sa.bayti.home.ADHAN_OWN "
+VOICE = "am broadcast -n sa.bayti.home/.tilawah.MusicReceiver -a sa.bayti.home.VOICE "
 song = os.path.join(tmp, "my adhan.mp3")
 open(song, "wb").write(b"ID3 not really sound; the fake ffmpeg does not read it")
 
@@ -91,7 +91,7 @@ check("add: the original is never uploaded, one small file goes to the staging p
       pushes == ["PUSH /data/local/tmp/urtv-own/in.m4a"] and len(os.listdir(kept)) == 1, pushes)
 size = os.path.getsize(os.path.join(kept, "0.m4a"))
 check("add: the shell streams it into the launcher's own door, then the app is told its size",
-      any(s == "content write --uri content://sa.urtv.home.adhan/own-in < /data/local/tmp/urtv-own/in.m4a" for s in sent)
+      any(s == "content write --uri content://sa.bayti.home.adhan/own-in < /data/local/tmp/urtv-own/in.m4a" for s in sent)
       and OWN + f"--es op add --ei size {size}" in sent, sent)
 check("add: the staging file is removed, and the answer shows its size", any(s.startswith("rm -f /data/local/tmp/urtv-own/in.m4a") for s in sent)
       and "own: 40 KB (in use)" in out, out)

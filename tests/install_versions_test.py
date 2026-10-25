@@ -28,7 +28,7 @@ def run(report, what="saver", answer="3.124"):
     out = (tmp / "report.md").read_text(encoding="utf-8") if report is not None else None
     return r.returncode, out
 
-old = "Home: sa.urtv.home/.MainActivity\nVersions: screensaver 3.89, home 3.89\nExtras: TV Bro no\n"
+old = "Home: sa.bayti.home/.MainActivity\nVersions: screensaver 3.89, home 3.89\nExtras: TV Bro no\n"
 code, out = run(old)
 check("install: the report's old Versions line is replaced", code == 0 and out == old.replace("3.89, home 3.89", "3.124, home 3.124").replace("screensaver 3.89", "screensaver 3.124"), repr(out))
 code, out = run("Home: x\n")

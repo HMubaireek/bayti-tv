@@ -8,7 +8,7 @@ Paste everything below the line into an agent that can read GitHub, browse the w
 
 You are extending **شاشة تلفزيونك**, an Arabic always-on TV screensaver/dashboard, so it runs on as many TV platforms as possible, choosing the best delivery method for each. Research first, then build, then document.
 
-Repository: **https://github.com/tshi-dev/UrTV** (public). Work on a branch and open a pull request against `next`; do not push to `master` directly (changes reach `master` from `next` once tested).
+Repository: **https://github.com/HMubaireek/bayti-tv** (public). Work on a branch and open a pull request against `next`; do not push to `master` directly (changes reach `master` from `next` once tested).
 
 ## What already exists (read these first)
 
@@ -48,7 +48,7 @@ Follow the recommended strategy. Expected shape (adjust if research shows better
 
 - **One shared page**: keep `src/template.html` as the single source. Any platform fix goes there behind feature detection, never a fork of the page.
 - **Hosted version**: publish `dist/` with GitHub Pages so browser-only TVs and Cast receivers can load a URL. Add a lightweight variant that loads photos as separate files instead of inlined base64, for slow TVs.
-- **Settings without the Android app**: a simple settings page, usable with a TV remote and also from a phone, that builds the fragment URL. City from the existing region list in `android/app/src/main/java/sa/urtv/screensaver/Cities.java` and the Open-Meteo search, plus two team fields and the show filters. Optionally show a QR code linking to it.
+- **Settings without the Android app**: a simple settings page, usable with a TV remote and also from a phone, that builds the fragment URL. City from the existing region list in `android/app/src/main/java/sa/bayti/screensaver/Cities.java` and the Open-Meteo search, plus two team fields and the show filters. Optionally show a QR code linking to it.
 - **Per-platform wrappers** where they add real value (system screensaver, auto-start, offline). Examples: a Tizen `.wgt` and a webOS `.ipk` that bundle the page; a Fire TV build of the existing APK if its screensaver path differs; a Cast receiver; a tvOS or Roku native port **only if** research shows no web path. For those, document the cost instead of building it unless it is small.
 - **CI**: extend GitHub Actions to build every package and attach it to a release, like `apk-latest`.
 

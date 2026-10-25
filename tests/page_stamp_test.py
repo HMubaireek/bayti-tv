@@ -9,7 +9,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-APP = ROOT / "android/app/src/main/java/sa/urtv/screensaver"
+APP = ROOT / "android/app/src/main/java/sa/bayti/screensaver"
 failed = 0
 def check(name, ok, detail=""):
     global failed
@@ -30,7 +30,7 @@ if not shutil.which("javac"):
 cases = [l.split("\t") for l in (ROOT / "tests/page_stamp_cases.tsv").read_text(encoding="utf-8").split("\n") if l and not l.startswith("#")]
 with tempfile.TemporaryDirectory() as tmp:
     subprocess.run(["javac", "-encoding", "UTF-8", "-d", tmp, str(APP / "PageStamp.java"), str(ROOT / "tests/PageStampRun.java")], check=True, capture_output=True)
-    out = subprocess.run(["java", "-Dfile.encoding=UTF-8", "-cp", tmp, "sa.urtv.screensaver.PageStampRun", str(ROOT / "tests/page_stamp_cases.tsv")],
+    out = subprocess.run(["java", "-Dfile.encoding=UTF-8", "-cp", tmp, "sa.bayti.screensaver.PageStampRun", str(ROOT / "tests/page_stamp_cases.tsv")],
                          check=True, capture_output=True).stdout
 for c, g in zip(cases, out.decode("utf-8").split("\n")):
     want = c[2] if c[0] == "of" else c[3]
