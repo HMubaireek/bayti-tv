@@ -28,7 +28,7 @@ app's preview of the same page and `measure.sh` writes «not measured»). Times 
 | Xiaomi MiTV-AXTU0 | 14 | works | not reported | not reported | – | not reported |
 | Xiaomi MiTV-MZTU0 · 2 reports | 14 | works | not reported | not reported | – | not reported |
 | Sony BRAVIA 4K UR3 (BRAVIA_UR3) · 5 reports | 10 | works, first time | yes | turn on USB debugging and network debugging first | one TV showed up only as a Cast device until it was unplugged and plugged in again; SmartTube upload over Wi-Fi is slow but completes | 14 min |
-| Sony BRAVIA VH1 | 12 | works | not reported | not reported | SmartTube (about 25 MB) uploaded to 100%, then the install ended in a read timeout on the TV (slow steps now run in the background on the TV; `SKIP_EXTRAS=1` skips the extras) | not reported |
+| Sony BRAVIA VH1 | 12 | works | not reported | not reported | SmartTube (about 25 MB) uploaded to 100%, then the install ended in a read timeout on the TV (slow steps now run in the background on the TV; `SKIP_EXTRAS=1` skips the extras). On a KD-65X9000H the TV ends background jobs, so the decode ran silent in the foreground and timed out at 60 s on every try: the direct run now prints a heartbeat (Bayti TV). The CleanYourTV list for this model also turned Netflix and AirPlay/HomeKit off: streaming and casting apps are never taken from a community list now | not reported |
 | Sony BRAVIA 4K GB ATV3 | 9 | works | not reported | not reported | – | not reported |
 | Sony BRAVIA 4K GB ATV2 | 9 | works | not reported | not reported | – | not reported |
 | Skyworth SWTV-20AE-PRO | 11 | works (tvlauncher off) | no | 5555, an occasional timeout that retries by itself | – | 14 min |

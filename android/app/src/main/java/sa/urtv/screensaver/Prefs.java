@@ -12,6 +12,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /** Everything the user picks in settings, and the dashboard URL built from it. */
@@ -69,8 +70,18 @@ final class Prefs {
 
     static final String[] MIN_RATINGS = {"0", "6", "6.5", "7", "7.5", "8"};
 
-    // minutes between background photos (sent to the page as #photos=; 30 is what it always did)
-    static final String[] PHOTO_MINUTES = {"5", "10", "15", "30", "60"};
+    // minutes between background photos (sent to the page and the launcher as #photos=; 30 is what it always did). Each divides a day:
+    // the page counts its slots from midnight
+    static final String[] PHOTO_MINUTES = {"1", "2", "5", "10", "15", "20", "30", "60", "120", "180", "360", "720", "1440"};
+
+    // how the prayer times are calculated (sent to the page and the launcher as #method=; umm_alqura is what it always used).
+    // The page and the launcher each hold the angles of every method (template.html PRAYER_METHODS, the launcher's PrayerMath.Method).
+    static final String[][] PRAYER_METHODS = {
+        {"umm_alqura", "أم القرى (السعودية)"}, {"jafari", "الشيعة الاثنا عشرية (قم)"}, {"tehran", "معهد الجيوفيزياء (طهران)"},
+        {"gulf", "منطقة الخليج"}, {"kuwait", "الكويت"}, {"qatar", "قطر"}, {"dubai", "دبي"},
+        {"mwl", "رابطة العالم الإسلامي"}, {"egypt", "الهيئة المصرية العامة للمساحة"},
+        {"karachi", "جامعة العلوم الإسلامية (كراتشي)"}, {"isna", "أمريكا الشمالية (ISNA)"},
+    };
 
     // digits on the screen (sent to the page as #digits=; hindi is what it always showed)
     static final String[][] DIGITS = {{"hindi", "هندية ١٢٣"}, {"latin", "عربية 123"}};
@@ -250,6 +261,18 @@ final class Prefs {
     String minRating() { return sp.getString("minRating", "7"); }
     void setMinRating(String v) { sp.edit().putString("minRating", v).apply(); }
 
+    String prayerMethod() {
+        String v = sp.getString("prayerMethod", "umm_alqura");
+        for (String[] m : PRAYER_METHODS) if (m[0].equals(v)) return v;
+        return "umm_alqura";
+    }
+    void setPrayerMethod(String v) { sp.edit().putString("prayerMethod", v).apply(); }
+
+    static String prayerMethodLabel(String v) {
+        for (String[] m : PRAYER_METHODS) if (m[0].equals(v)) return m[1];
+        return PRAYER_METHODS[0][1];
+    }
+
     String digits() { return sp.getString("digits", "hindi"); }
     void setDigits(String v) { sp.edit().putString("digits", v).apply(); }
 
@@ -313,7 +336,14 @@ final class Prefs {
     String countdownName() { return sp.getString("cdName", ""); }
     void setCountdown(String date, String name) { sp.edit().putString("cd", date).putString("cdName", name).apply(); }
 
-    String photoMinutes() { return sp.getString("photoMinutes", "30"); }
+    String photoMinutes() {
+        String v = sp.getString("photoMinutes", "30");
+        return Arrays.asList(PHOTO_MINUTES).contains(v) ? v : "30";
+    }
+
+    /** «مصادر الصور»: the background photos' sources in order (PhotoSources.ALL); our Saudi set unless the owner picked others */
+    List<String> photoSources() { return PhotoSources.parse(sp.getString("photoSources", PhotoSources.SAUDI)); }
+    void setPhotoSources(List<String> v) { sp.edit().putString("photoSources", join(PhotoSources.parse(join(v, ",")), ",")).apply(); }
     void setPhotoMinutes(String v) { sp.edit().putString("photoMinutes", v).apply(); }
 
     /** The slim bar before the adhan, on the screensaver and on the home screen (default on); sent to the page as #adhanbar=. */
@@ -369,6 +399,7 @@ final class Prefs {
         for (String s : shows()) ids.add(s.split("\\|", 2)[0]);
         return "city=" + Uri.encode(city[0]) + "&lat=" + city[1] + "&lon=" + city[2]
             + "&tz=" + Uri.encode(cityTz())
+            + "&method=" + prayerMethod()
             + "&teams=" + join(teamIds(), ",")
             + "&events=" + join(list("events"), ",")
             + "&leagues=" + Uri.encode(join(leagues(), ","))
@@ -379,6 +410,7 @@ final class Prefs {
             + "&shows=" + join(ids, ",")
             + "&minrating=" + minRating()
             + "&photos=" + photoMinutes()
+            + "&photosrc=" + join(photoSources(), ",")   // the page reloads when it changes; the list itself comes through PhotoCache
             + "&digits=" + digits()
             + "&cardstyle=" + cardStyle()
             + "&adhanbar=" + (adhanBar() ? "1" : "0")

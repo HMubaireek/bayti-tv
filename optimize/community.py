@@ -33,6 +33,10 @@ GENERIC_MODELS = {"SMARTTV", "ANDROIDTV", "GOOGLETV", "TV", "ATV", "TVBOX", "AND
 GENERIC_DEVICES = {"TV", "ATV", "GTV", "DEVICE", "GENERIC", "ANDROID", "UNKNOWN", "TVBOX", "BOX"}
 # what a home switch of ours must never find in a list: launchers, setup wizards, the provisioning app
 NOT_FOR_US = re.compile(r"(launcher|tvhome|setupwraith|setupwizard|provision|\.home$|\.setup$)", re.I)
+# what people watch or cast with, whatever a community list says (one Sony list turned Netflix and AirPlay/HomeKit off): streaming
+# apps, their partner helpers (Netflix's ncm is the remote's Netflix button), the TV's own Google video and music apps, casting
+WATCHED = re.compile(r"(netflix|youtube|amazonvideo|primevideo|shahid|disney|appletv|atve|osn|starzplay|tod\.|hbo|spotify|anghami"
+                     r"|google\.android\.videos|airplay|homekit|mediashell|cast|miracast|mirror)", re.I)
 
 
 def norm(s):
@@ -105,7 +109,7 @@ def packages(path, keep=(), homes=(), installed=None):
     keep, homes = set(keep), set(homes)
     out = []
     for p in load(path)[1]:
-        if p in keep or p in homes or NOT_FOR_US.search(p) or p in out:
+        if p in keep or p in homes or NOT_FOR_US.search(p) or WATCHED.search(p) or p in out:
             continue
         if installed is not None and p not in installed:
             continue

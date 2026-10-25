@@ -3,14 +3,17 @@ package sa.urtv.screensaver;
 import android.content.Context;
 import android.webkit.WebResourceResponse;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 
 /**
  * Answers the page's font and photo requests from the device instead of the network, so the screensaver
@@ -47,10 +50,23 @@ final class PhotoCache {
                 String name = safeName(url.substring(BUNDLED.length()));
                 return name == null ? null : jpeg(c.getAssets().open("backgrounds/" + name));
             }
+            if (url.equals(HOSTED + "index.json")) {
+                // «مصادر الصور»: other sources than our Saudi set answer in its place, merged; ours alone go to the network as always
+                List<String> chosen = new Prefs(c).photoSources();
+                if (PhotoSources.onlySaudi(chosen)) return null;
+                java.util.Map<String, String> h = new java.util.HashMap<>();
+                h.put("Access-Control-Allow-Origin", "*");   // the page's origin is file://
+                byte[] body = PhotoSources.index(c, chosen).getBytes(StandardCharsets.UTF_8);
+                return new WebResourceResponse("application/json", "utf-8", 200, "OK", h, new ByteArrayInputStream(body));
+            }
             if (url.startsWith(HOSTED)) {
                 String name = safeName(url.substring(HOSTED.length()));
-                if (name == null) return null;   // index.json and anything else go to the network
+                if (name == null) return null;   // anything else goes to the network
                 File f = hosted(c, url, name);
+                return f == null ? null : jpeg(new FileInputStream(f));
+            }
+            if (PhotoSources.allowed(url)) {   // a photo of another source: kept on disk like ours, under a name made from its address
+                File f = hosted(c, url, cacheName(url));
                 return f == null ? null : jpeg(new FileInputStream(f));
             }
         } catch (Exception ignored) { }
@@ -59,6 +75,18 @@ final class PhotoCache {
 
     private static String safeName(String s) {
         return s.matches("[A-Za-z0-9_-]+\\.jpg") ? s : null;
+    }
+
+    /** the file a photo of another source is kept in: "src-" and its address's SHA-1 (the launcher names them the same way) */
+    static String cacheName(String url) {
+        try {
+            byte[] d = java.security.MessageDigest.getInstance("SHA-1").digest(url.getBytes(StandardCharsets.UTF_8));
+            StringBuilder s = new StringBuilder("src-");
+            for (int i = 0; i < 10; i++) s.append(String.format(java.util.Locale.US, "%02x", d[i]));
+            return s.append(".jpg").toString();
+        } catch (java.security.NoSuchAlgorithmException e) {
+            return "src-" + Integer.toHexString(url.hashCode()) + ".jpg";
+        }
     }
 
     private static WebResourceResponse jpeg(InputStream in) {
@@ -77,6 +105,7 @@ final class PhotoCache {
         HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
         con.setConnectTimeout(15000);
         con.setReadTimeout(30000);
+        con.setRequestProperty("User-Agent", "BaytiTV/1.0 (https://github.com/HMubaireek/bayti-tv)");   // Wikimedia asks for one
         File tmp = new File(dir, name + ".tmp");
         try {
             if (con.getResponseCode() != HttpURLConnection.HTTP_OK) return null;

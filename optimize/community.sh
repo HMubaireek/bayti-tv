@@ -36,6 +36,8 @@ tv "cmd package query-activities --brief -a android.intent.action.MAIN -c androi
   | sed -n 's#^\([A-Za-z0-9_.]*\)/.*#\1#p' | sort -u > "$tmp/homes"
 kept=$("$PY" -I optimize/offlist.py kept 2> /dev/null || true)
 grep -vE '^\s*(#|$)' "$LISTS/keep.txt" | awk '{print $1}' > "$tmp/keep"
+# the optional picks (YouTube Music, Google TV's films…) go off only when the household picks them (mine.txt), never from a community list
+grep -vE '^\s*(#|$)' "$LISTS/tcl-optional.txt" | awk '{print $1}' >> "$tmp/keep"
 printf '%s\n' "$kept" >> "$tmp/keep"
 "$PY" -I optimize/community.py packages "$chosen" --keep "$tmp/keep" --homes "$tmp/homes" --installed "$tmp/installed" > "$tmp/pkgs"
 # already off before we came: not ours (reset.sh would turn it on)

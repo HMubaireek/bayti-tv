@@ -35,6 +35,35 @@ public final class PrayerMathRun {
                 o[5] > o[4] && o[5] - o[4] == 90 * 60_000L && o[5] - day0 >= 24 * 3600_000L, hm(o[5], "Europe/Oslo") + " +" + (o[5] - day0) / 60000 + " min");
         check("Oslo midsummer: its clock reads 00:xx", hm(o[5], "Europe/Oslo").startsWith("00:"), hm(o[5], "Europe/Oslo"));
 
+        // «طريقة حساب المواقيت»: Al-Qatif, 25 October 2026. Umm al-Qura by name is the same as before; the Shia method (Jafari) waits for
+        // Maghrib at 4° (some 15 minutes after sunset), puts Isha at 14° (no fixed delay) and Fajr at 16° (later than 18.5°)
+        double qLat = 26.5654, qLng = 50.0089;
+        long[] uq = PrayerMath.compute(2026, 10, 25, qLat, qLng, "Asia/Riyadh", false);
+        long[] uqByName = PrayerMath.compute(2026, 10, 25, qLat, qLng, "Asia/Riyadh", false, PrayerMath.Method.of("umm_alqura"));
+        check("method: umm_alqura by name = the old default", java.util.Arrays.equals(uq, uqByName), java.util.Arrays.toString(uqByName));
+        check("method: an unknown key is Umm al-Qura", PrayerMath.Method.of("nope") == PrayerMath.Method.UMM_ALQURA
+                && PrayerMath.Method.of(null) == PrayerMath.Method.UMM_ALQURA, "");
+        long[] ja = PrayerMath.compute(2026, 10, 25, qLat, qLng, "Asia/Riyadh", false, PrayerMath.Method.of("jafari"));
+        boolean jaOrdered = true;
+        for (int i = 1; i < 6; i++) jaOrdered &= ja[i] > ja[i - 1];
+        check("jafari: the six come in order", jaOrdered, java.util.Arrays.toString(ja));
+        long late = (ja[4] - uq[4]) / 60_000L;
+        check("jafari: Maghrib 12-20 minutes after sunset", late >= 12 && late <= 20, late + " min");
+        check("jafari: Fajr later than Umm al-Qura's", ja[0] > uq[0], hm(ja[0], "Asia/Riyadh") + " vs " + hm(uq[0], "Asia/Riyadh"));
+        long ishaGap = (ja[5] - ja[4]) / 60_000L;
+        check("jafari: Isha by its angle, 45-75 minutes after its Maghrib (not a fixed 90)", ishaGap >= 45 && ishaGap <= 75, ishaGap + " min");
+        check("jafari: Dhuhr and Asr as Umm al-Qura", ja[2] == uq[2] && ja[3] == uq[3], hm(ja[2], "Asia/Riyadh") + " " + hm(ja[3], "Asia/Riyadh"));
+        long[] mwl = PrayerMath.compute(2026, 10, 25, qLat, qLng, "Asia/Riyadh", true, PrayerMath.Method.of("mwl"));
+        check("mwl: no Ramadan delay (Isha by angle)", mwl[5] - mwl[4] != 120 * 60_000L && mwl[5] > mwl[4], String.valueOf((mwl[5] - mwl[4]) / 60000));
+        long[] gulfRam = PrayerMath.compute(2026, 10, 25, qLat, qLng, "Asia/Riyadh", true, PrayerMath.Method.of("gulf"));
+        check("gulf: Isha 90 minutes after Maghrib, also in Ramadan", gulfRam[5] - gulfRam[4] == 90 * 60_000L, String.valueOf((gulfRam[5] - gulfRam[4]) / 60000));
+        long[] oJa = PrayerMath.compute(2026, 6, 21, 59.91, 10.75, "Europe/Oslo", false, PrayerMath.Method.of("jafari"));
+        check("jafari, Oslo midsummer: Isha (14° never reached) is not before Maghrib", oJa[5] >= oJa[4], hm(oJa[4], "Europe/Oslo") + " " + hm(oJa[5], "Europe/Oslo"));
+        long kt = Instant.parse("2026-10-25T09:00:00Z").toEpochMilli();
+        check("key: Umm al-Qura keeps its old key, another method is another key",
+                PrayerMath.key(kt, qLat, qLng, "Asia/Riyadh", PrayerMath.Method.UMM_ALQURA).equals(PrayerMath.key(kt, qLat, qLng, "Asia/Riyadh"))
+                && !PrayerMath.key(kt, qLat, qLng, "Asia/Riyadh", PrayerMath.Method.of("jafari")).equals(PrayerMath.key(kt, qLat, qLng, "Asia/Riyadh")), "");
+
         // the cache key and Aladhan's date go by the city's zone and name the city
         long t = Instant.parse("2026-10-23T21:30:00Z").toEpochMilli();   // Saturday 00:30 in Riyadh, Friday evening in New York
         check("key: Riyadh's date, not the TV's", PrayerMath.key(t, 24.6877, 46.7219, "Asia/Riyadh").startsWith("times_20261024_"), PrayerMath.key(t, 24.6877, 46.7219, "Asia/Riyadh"));

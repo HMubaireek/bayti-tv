@@ -23,6 +23,8 @@ import java.util.Map;
  *   am broadcast -n sa.urtv.home/.DockReceiver -a sa.urtv.home.NAMES                  pkg | shown | own | from
  *   am broadcast -n sa.urtv.home/.DockReceiver -a sa.urtv.home.SET_NAMES --es names 'pkg|الاسم;pkg2|'   (empty: back)
  *   am broadcast -n sa.urtv.home/.DockReceiver -a sa.urtv.home.CLEAR_NAMES
+ *   am broadcast -n sa.urtv.home/.DockReceiver -a sa.urtv.home.EXPORT                 the owner's choices: "backup: <base64>"
+ *   am broadcast -n sa.urtv.home/.DockReceiver -a sa.urtv.home.IMPORT --es b64 <base64>   (optimize/settings.sh)
  *   am broadcast -n sa.urtv.home/.DockReceiver -a sa.urtv.home.SLEEP_TV [--ei minutes 30 | 0 = cancel]   «مؤقت النوم» for the whole TV
  *
  * The answer is in the "data" of am's output. optimize/dock.sh wraps them all. People use «ترتيب المفضلة»
@@ -89,6 +91,22 @@ public class DockReceiver extends BroadcastReceiver {
             case "sa.urtv.home.GET_DOCK":
                 setResultData("dock: " + String.join(",", Dock.shown(c, apps)));
                 return;
+            case "sa.urtv.home.EXPORT":   // «نسخة الإعدادات» (optimize/settings.sh save): the owner's choices, base64 of JSON
+                try { setResultData("backup: " + PrefsBackup.export(c)); }
+                catch (Exception e) { setResultData("error: backup failed: " + e.getMessage()); }
+                return;
+            case "sa.urtv.home.IMPORT": {   // --es b64 <what EXPORT gave>
+                String b64 = i.getStringExtra("b64");
+                if (b64 == null || b64.isEmpty()) { setResultData("error: IMPORT needs --es b64 <backup>"); return; }
+                try {
+                    int n = PrefsBackup.restore(c, b64);
+                    c.sendBroadcast(new Intent(Dock.CHANGED).setPackage(c.getPackageName()));   // the home screen redraws its row
+                    setResultData("restored: " + n + " settings");
+                } catch (Exception e) {
+                    setResultData("error: not a backup of these settings (" + e.getMessage() + ")");
+                }
+                return;
+            }
             case "sa.urtv.home.RESET_DOCK":
                 Dock.reset(c);
                 setResultData("dock: " + String.join(",", Dock.shown(c, apps)) + " (defaults)");

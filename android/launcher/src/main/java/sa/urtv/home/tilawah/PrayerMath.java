@@ -19,8 +19,55 @@ final class PrayerMath {
 
     private PrayerMath() {}
 
+    /**
+     * How the times are calculated (the screensaver's «طريقة حساب المواقيت», #method= in its fragment): Aladhan's method number, the
+     * sun's angle for Fajr, Isha either at an angle or minutes after Maghrib, and Maghrib's angle (.833 = sunset; the Shia methods wait
+     * for the redness to go). The same table as the page's PRAYER_METHODS.
+     */
+    static final class Method {
+        final String key;
+        final int aladhan;
+        final double fajr, isha, maghrib;
+        /** minutes after Maghrib, and in Ramadan; 0 = Isha has its own angle */
+        final int ishaMin, ramadanMin;
+
+        private Method(String key, int aladhan, double fajr, double isha, int ishaMin, int ramadanMin, double maghrib) {
+            this.key = key; this.aladhan = aladhan; this.fajr = fajr; this.isha = isha;
+            this.ishaMin = ishaMin; this.ramadanMin = ramadanMin; this.maghrib = maghrib;
+        }
+
+        /** Isha is a delay after Maghrib (Umm al-Qura, Gulf, Qatar), not an angle of its own */
+        boolean ishaIsDelay() { return ishaMin > 0; }
+
+        static final Method UMM_ALQURA = new Method("umm_alqura", 4, 18.5, 0, 90, 120, .833);
+        static final Method[] ALL = {
+            UMM_ALQURA,
+            new Method("jafari", 0, 16, 14, 0, 0, 4),
+            new Method("tehran", 7, 17.7, 14, 0, 0, 4.5),
+            new Method("gulf", 8, 19.5, 0, 90, 0, .833),
+            new Method("kuwait", 9, 18, 17.5, 0, 0, .833),
+            new Method("qatar", 10, 18, 0, 90, 0, .833),
+            new Method("dubai", 16, 18.2, 18.2, 0, 0, .833),
+            new Method("mwl", 3, 18, 17, 0, 0, .833),
+            new Method("egypt", 5, 19.5, 17.5, 0, 0, .833),
+            new Method("karachi", 1, 18, 18, 0, 0, .833),
+            new Method("isna", 2, 15, 15, 0, 0, .833),
+        };
+
+        /** the method of that key; anything else is Umm al-Qura, what it always used */
+        static Method of(String key) {
+            for (Method m : ALL) if (m.key.equals(key)) return m;
+            return UMM_ALQURA;
+        }
+    }
+
     /** Isha comes this long after Maghrib (Umm al-Qura): 90 minutes, 120 in Ramadan. */
-    static long ishaDelayMillis(boolean ramadan) { return (ramadan ? 120 : 90) * 60_000L; }
+    static long ishaDelayMillis(boolean ramadan) { return ishaDelayMillis(Method.UMM_ALQURA, ramadan); }
+
+    /** The same for a method whose Isha is a delay; a method with an Isha angle has none. */
+    static long ishaDelayMillis(Method m, boolean ramadan) {
+        return (ramadan && m.ramadanMin > 0 ? m.ramadanMin : m.ishaMin) * 60_000L;
+    }
 
     /** Local midnight of that day in that zone. */
     static long midnight(int y, int mo, int d, String tz) {
@@ -36,6 +83,11 @@ final class PrayerMath {
      * day, instead of wrapping back to an hour of this day that has already gone.
      */
     static long[] compute(int y, int mo, int d, double lat, double lng, String tz, boolean ramadan) {
+        return compute(y, mo, d, lat, lng, tz, ramadan, Method.UMM_ALQURA);
+    }
+
+    /** The same by that method. An Isha by angle is never before Maghrib (at a high latitude in summer the angle is never reached). */
+    static long[] compute(int y, int mo, int d, double lat, double lng, String tz, boolean ramadan, Method m) {
         TimeZone zone = TimeZone.getTimeZone(tz);
         long day0 = midnight(y, mo, d, tz);
         Calendar utc = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.US);
@@ -44,11 +96,11 @@ final class PrayerMath {
         double jd0 = utc.getTimeInMillis() / 86400000.0 + 2440587.5 - lng / 360.0;
         double tzHours = zone.getOffset(day0 + 12 * 3600_000L) / 3600000.0;
 
-        double fajr = adj(angleTime(jd0, lat, 18.5, 5, true), tzHours, lng);
+        double fajr = adj(angleTime(jd0, lat, m.fajr, 5, true), tzHours, lng);
         double sunrise = adj(angleTime(jd0, lat, .833, 6, true), tzHours, lng);
         double dhuhr = adj(noon(jd0, 12), tzHours, lng);
         double asr = adj(asrTime(jd0, lat, 13), tzHours, lng);
-        double maghrib = adj(angleTime(jd0, lat, .833, 18, false), tzHours, lng);
+        double maghrib = adj(angleTime(jd0, lat, m.maghrib, 18, false), tzHours, lng);
 
         long[] at = new long[6];
         at[FAJR] = day0 + minutesOfDay(fajr) * 60_000L;
@@ -56,13 +108,25 @@ final class PrayerMath {
         at[DHUHR] = day0 + minutesOfDay(dhuhr) * 60_000L;
         at[ASR] = day0 + minutesOfDay(asr) * 60_000L;
         at[MAGHRIB] = day0 + minutesOfDay(maghrib) * 60_000L;
-        at[ISHA] = at[MAGHRIB] + ishaDelayMillis(ramadan);
+        if (m.ishaIsDelay()) {
+            at[ISHA] = at[MAGHRIB] + ishaDelayMillis(m, ramadan);
+        } else {
+            // the angle's hour, as a moment after Maghrib's: past midnight it is the next day's, like the delayed Isha
+            long isha = day0 + Math.round(fix(adj(angleTime(jd0, lat, m.isha, 18, false), tzHours, lng), 24) * 60) * 60_000L;
+            while (isha < at[MAGHRIB]) isha += 86_400_000L;
+            at[ISHA] = isha;
+        }
         return at;
     }
 
     /** The preference key of the day's times: the date in the city's zone and the city itself, so a new city refetches. */
     static String key(long millis, double lat, double lng, String tz) {
         return "times_" + format("yyyyMMdd", millis, tz) + "_" + String.format(Locale.US, "%.3f_%.3f", lat, lng) + "_" + tz;
+    }
+
+    /** The same for a method: Umm al-Qura keeps the key it always had, another method is another key, so a new method refetches. */
+    static String key(long millis, double lat, double lng, String tz, Method m) {
+        return m == Method.UMM_ALQURA ? key(millis, lat, lng, tz) : key(millis, lat, lng, tz) + "_" + m.key;
     }
 
     /** The date Aladhan is asked for: the city's own day, not the TV's. */

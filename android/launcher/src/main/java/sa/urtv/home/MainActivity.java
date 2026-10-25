@@ -105,7 +105,7 @@ public class MainActivity extends Activity {
     private long wallChangedAt;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Runnable rotateWallpaper = this::nextWallpaper;
-    static final long WALLPAPER_INTERVAL_MS = 10 * 60 * 1000;
+    static final long WALLPAPER_INTERVAL_MS = 10 * 60 * 1000;   // until the screensaver app says how often (its «تبديل الصورة كل»)
     private TextView greeting, weatherLine, clock, ampm, date, zoneLine, title, appsLabel;
     private Pill wifiPill;   // the network's name shows while it has the focus
     private Greeting greetingLine;
@@ -191,9 +191,9 @@ public class MainActivity extends Activity {
         if (getPackageManager().getChangedPackages(packageSeq) != null) buildApps();
         if (firstShow) { firstShow = false; playEntrance(); }
         // New photo on return if the current one has been up for the full interval.
-        if (wallIndex < 0 || SystemClock.elapsedRealtime() - wallChangedAt >= WALLPAPER_INTERVAL_MS) nextWallpaper();
+        if (wallIndex < 0 || SystemClock.elapsedRealtime() - wallChangedAt >= wallpaperInterval()) nextWallpaper();
         else {
-            scheduleWallpaper(WALLPAPER_INTERVAL_MS - (SystemClock.elapsedRealtime() - wallChangedAt));
+            scheduleWallpaper(wallpaperInterval() - (SystemClock.elapsedRealtime() - wallChangedAt));
             checkOwnChanged();   // the owner added or removed photos while another app was in front
         }
     }
@@ -1014,7 +1014,7 @@ public class MainActivity extends Activity {
     private String[] remotePhotos() {
         String s = prefs().getString("photoIndex", "");
         if (s.isEmpty()) return new String[0];
-        String[] all = s.split(",");
+        String[] all = s.split(s.contains("\n") ? "\n" : ",");   // one per line; an older copy is comma-separated names
         java.util.Calendar c = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("Asia/Riyadh"));
         java.util.Calendar utc = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"));
         utc.clear();
@@ -1034,7 +1034,8 @@ public class MainActivity extends Activity {
     private void pruneCachedPhotos(String[] keep) {
         java.io.File[] files = new java.io.File(getFilesDir(), "photos").listFiles();
         if (files == null) return;
-        java.util.Set<String> k = new java.util.HashSet<>(Arrays.asList(keep));
+        java.util.Set<String> k = new java.util.HashSet<>();
+        for (String p : keep) k.add(cacheName(p));
         for (java.io.File f : files) if (!k.contains(f.getName())) f.delete();
     }
 
@@ -1047,8 +1048,66 @@ public class MainActivity extends Activity {
         return at != null && System.currentTimeMillis() - at < RETRY_MS;
     }
 
+    // «مصادر الصور»: the screensaver app's merged list of the chosen sources (its ConfigProvider .../photos), when other sources than
+    // our Saudi set are chosen, and how often the photo changes. A photo there is a file of photos/ or a full https address.
+    static final Uri PHOTOS = Uri.parse("content://sa.urtv.screensaver.config/photos");
+    private static final String[] PHOTO_HOSTS = {"https://upload.wikimedia.org/", "https://thumb.wikimedia.org/", "https://www.bing.com/"};
+
+    static boolean photoEntry(String f) {
+        if (f.matches("[A-Za-z0-9_-]+\\.jpg")) return true;
+        for (String h : PHOTO_HOSTS) if (f.startsWith(h) && f.indexOf('\n') < 0) return true;
+        return false;
+    }
+
+    /** the file a photo is kept in: its own name, or for a full address "src-" and the address's SHA-1, as the screensaver app names it */
+    static String cacheName(String f) {
+        if (!f.startsWith("https://")) return f;
+        try {
+            byte[] d = java.security.MessageDigest.getInstance("SHA-1").digest(f.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder s = new StringBuilder("src-");
+            for (int i = 0; i < 10; i++) s.append(String.format(java.util.Locale.US, "%02x", d[i]));
+            return s.append(".jpg").toString();
+        } catch (java.security.NoSuchAlgorithmException e) {
+            return "src-" + Integer.toHexString(f.hashCode()) + ".jpg";
+        }
+    }
+
+    private long wallpaperInterval() {
+        long m = prefs().getLong("photoMinutes", 0);
+        return m > 0 ? m * 60_000L : WALLPAPER_INTERVAL_MS;
+    }
+
+    /** Off the main thread: the chosen sources' list from the screensaver app; true when it gave one (then GitHub's is not asked for). */
+    private boolean photoIndexFromSources() {
+        try (Cursor c = getContentResolver().query(PHOTOS, null, null, null, null)) {
+            // an older screensaver app answers any path with its settings: no "json" column, nothing from it
+            if (c == null || c.getColumnIndex("json") != 0 || !c.moveToFirst()) return false;
+            String minutes = c.getString(1);
+            if (minutes != null && minutes.matches("\\d{1,4}")) prefs().edit().putLong("photoMinutes", Long.parseLong(minutes)).apply();
+            String json = c.getString(0);
+            if (json == null) {   // only our Saudi set: GitHub's list as always, and drop a list of other sources
+                if (prefs().getBoolean("photoIndexSources", false))
+                    prefs().edit().remove("photoIndex").remove("photoIndexAt").putBoolean("photoIndexSources", false).apply();
+                return false;
+            }
+            org.json.JSONArray a = new org.json.JSONArray(json);
+            List<String> names = new ArrayList<>();
+            for (int i = 0; i < a.length(); i++) {
+                String f = a.getJSONObject(i).optString("f");
+                if (photoEntry(f)) names.add(f);
+            }
+            if (names.isEmpty()) return false;
+            prefs().edit().putString("photoIndex", android.text.TextUtils.join("\n", names))
+                .putLong("photoIndexAt", System.currentTimeMillis()).putBoolean("photoIndexSources", true).apply();
+            return true;
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
     /** Off the main thread: refresh the hosted photo list once a day (after a failure, again in an hour). */
     private void refreshPhotoIndex() {
+        if (photoIndexFromSources()) return;
         if (System.currentTimeMillis() - prefs().getLong("photoIndexAt", 0) < INDEX_MAX_AGE_MS) return;
         if (failedRecently("index.json")) return;
         try {
@@ -1070,6 +1129,7 @@ public class MainActivity extends Activity {
         java.net.HttpURLConnection c = (java.net.HttpURLConnection) new java.net.URL(url).openConnection();
         c.setConnectTimeout(10000);
         c.setReadTimeout(30000);
+        c.setRequestProperty("User-Agent", "BaytiTV/1.0 (https://github.com/HMubaireek/bayti-tv)");   // Wikimedia asks for one
         try (java.io.InputStream in = c.getInputStream()) {
             java.io.ByteArrayOutputStream b = new java.io.ByteArrayOutputStream();
             byte[] buf = new byte[16384];
@@ -1151,12 +1211,13 @@ public class MainActivity extends Activity {
                     bm = decode(() -> getContentResolver().openInputStream(photo));
                 } catch (java.io.IOException | RuntimeException ignored) { }
             } else if (idx >= wallpapers.length) {
-                java.io.File f = new java.io.File(getFilesDir(), "photos/" + remote[idx - wallpapers.length]);
+                java.io.File f = new java.io.File(getFilesDir(), "photos/" + cacheName(remote[idx - wallpapers.length]));
                 try {
                     if (!f.isFile() && failedRecently(f.getName())) throw new java.io.IOException("failed lately");   // the bundled one meanwhile
                     if (!f.isFile()) {
                         byte[] data;
-                        try { data = download(PHOTO_BASE + f.getName()); }
+                        String want = remote[idx - wallpapers.length];
+                        try { data = download(want.startsWith("https://") ? want : PHOTO_BASE + want); }
                         catch (java.io.IOException e) { photoFailed.put(f.getName(), System.currentTimeMillis()); throw e; }
                         java.io.File dir = f.getParentFile();
                         if (dir.isDirectory() || dir.mkdirs()) {
@@ -1175,7 +1236,7 @@ public class MainActivity extends Activity {
             Bitmap result = bm;
             runOnUiThread(() -> showWallpaper(result));
         }).start();
-        scheduleWallpaper(WALLPAPER_INTERVAL_MS);
+        scheduleWallpaper(wallpaperInterval());
     }
 
     private void showWallpaper(Bitmap bm) {

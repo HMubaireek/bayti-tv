@@ -6,6 +6,7 @@ com.tcl.airplay2                       # AirPlay from iPhone/iPad/Mac
 com.google.android.apps.mediashell     # Chromecast built-in / Google Cast
 com.tcl.miracast                       # screen mirroring from Android phones
 com.tcl.magiconnectfree                # TCL phone-to-TV connect
+com.sony.dtv.homekit                   # Sony: AirPlay and HomeKit (a community list for the BRAVIA VH1 turned it off)
 
 # Voice and remote
 com.google.android.katniss             # Google Assistant / voice search from the remote

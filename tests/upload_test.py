@@ -3,7 +3,7 @@ the command ran, and the upload is killed half way and started again. The file m
 
     python3 tests/upload_test.py          (no TV needed; 50 random runs)
 """
-import base64, hashlib, os, random, re, sys, tempfile, types
+import base64, hashlib, os, random, re, shutil, subprocess, sys, tempfile, types
 
 FS = {}
 JOB = {}   # name -> {"src", "dst", "left"}: a background job on the TV; it finishes after "left" looks at it
@@ -150,7 +150,7 @@ class Fake:
     def shell(self, cmd, timeout=120):
         self.calls.append(cmd)
         if "nohup sh -c" in cmd: return "started"
-        if cmd.endswith("echo __rc=$?"): return "Success\n__rc=0\n"   # run directly, the old way
+        if "while kill -0" in cmd: return ".\n.\n.\n__rc=0\nSuccess\n"   # run directly, beside its heartbeat
         if "if grep -q" in cmd:
             if self.dead == "later" and len([c for c in self.calls if "if grep -q" in c]) > 2: return "dead"
             if self.dead is True: return "dead"
@@ -171,13 +171,25 @@ f = Fake(5, dead=True)
 with contextlib.redirect_stderr(io.StringIO()):
     got = tv.run_bg(f, "install", "pm install -r /data/local/tmp/x.apk")
 if got != (0, "Success"): bgbad.append(f"no background jobs: {got}")
-if sum(c.endswith("echo __rc=$?") for c in f.calls) != 1: bgbad.append("no background jobs: not run directly once")
+if sum("while kill -0" in c for c in f.calls) != 1: bgbad.append("no background jobs: not run directly once")
 # the same TV, but the job lives a few seconds first (a TCL on Android 14): still run directly, once
 f = Fake(10**9, dead="later")
 with contextlib.redirect_stderr(io.StringIO()):
     got = tv.run_bg(f, "install", "pm install -r /data/local/tmp/x.apk")
 if got != (0, "Success"): bgbad.append(f"dies after a while: {got}")
-if sum(c.endswith("echo __rc=$?") for c in f.calls) != 1: bgbad.append("dies after a while: not run directly once")
+if sum("while kill -0" in c for c in f.calls) != 1: bgbad.append("dies after a while: not run directly once")
+# run directly, for real in a local shell: the heartbeat comes while the job works (a silent minute broke the connection on a Sony BRAVIA
+# VH1), then its exit code and its own output, with no dots in it
+class LocalSh:
+    def shell(self, cmd, timeout=120):
+        return subprocess.run(["sh", "-c", cmd], capture_output=True, text=True, timeout=timeout).stdout
+if shutil.which("sh"):
+    jd = tempfile.mkdtemp().replace("\\", "/")
+    tv.HEARTBEAT_S = 1
+    rc, body = tv.run_direct(LocalSh(), jd + "/job", "sleep 3; echo decoded; exit 3", 60)
+    if (rc, body) != (3, "decoded"): bgbad.append(f"run directly, local shell: {(rc, body)}")
+    raw = LocalSh().shell(f"(sleep 3) > {jd}/j2.out 2>&1 & p=$!; while kill -0 $p 2>/dev/null; do echo .; sleep 1; done; wait $p; echo __rc=$?")
+    if raw.count(".") < 2: bgbad.append(f"run directly: no heartbeat while it works: {raw!r}")
 for name, fake, limit, word in (("never ends", Fake(10**9), 30, "still running after"),):
     err = io.StringIO()
     try:

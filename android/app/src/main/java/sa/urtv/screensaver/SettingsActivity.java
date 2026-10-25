@@ -128,6 +128,8 @@ public class SettingsActivity extends Activity {
 
         header("الموقع");
         row("المدينة", prefs.city()[0], R.drawable.ic_place, new Runnable() { public void run() { pickCity(); } });
+        row("طريقة حساب المواقيت", Prefs.prayerMethodLabel(prefs.prayerMethod()), R.drawable.ic_place,
+            new Runnable() { public void run() { pickPrayerMethod(); } });
 
         header("المباريات");
         row("الفرق المتابعة (" + arabicNum(prefs.teams().size()) + "/" + arabicNum(Prefs.MAX_TEAMS) + ")", teamsLabel(),
@@ -200,6 +202,8 @@ public class SettingsActivity extends Activity {
         }
 
         header("التوقيت");
+        row("مصادر الصور", photoSourcesLabel(), R.drawable.ic_eye,
+            new Runnable() { public void run() { pickPhotoSources(); } });
         row("تبديل الصورة كل", minutesLabel(Integer.parseInt(prefs.photoMinutes())), R.drawable.ic_sync,
             new Runnable() { public void run() { pickPhotoMinutes(); } });
         row("صوري (" + arabicNum(Own.count(this)) + "/" + arabicNum(Own.MAX) + ")", ownLabel(), R.drawable.ic_eye,
@@ -771,6 +775,18 @@ public class SettingsActivity extends Activity {
             .show();
     }
 
+    private void pickPrayerMethod() {
+        String[] labels = new String[Prefs.PRAYER_METHODS.length];
+        int sel = 0;
+        for (int i = 0; i < labels.length; i++) {
+            labels[i] = Prefs.PRAYER_METHODS[i][1];
+            if (Prefs.PRAYER_METHODS[i][0].equals(prefs.prayerMethod())) sel = i;
+        }
+        new Dlg(this).setTitle("طريقة حساب المواقيت")
+            .setSingleChoiceItems(labels, sel, (d, i) -> { prefs.setPrayerMethod(Prefs.PRAYER_METHODS[i][0]); d.dismiss(); render(); })
+            .show();
+    }
+
     private void pickNational() {
         String[] labels = new String[Prefs.NATIONAL.length];
         int sel = 0;
@@ -781,6 +797,30 @@ public class SettingsActivity extends Activity {
         new Dlg(this).setTitle("المناسبات الوطنية")
             .setSingleChoiceItems(labels, sel, (d, i) -> { prefs.setNational(Prefs.NATIONAL[i][0]); d.dismiss(); render(); })
             .show();
+    }
+
+    private String photoSourcesLabel() {
+        List<String> out = new ArrayList<>();
+        for (String k : prefs.photoSources()) out.add(PhotoSources.label(k));
+        return Prefs.join(out, "، ");
+    }
+
+    /** «مصادر الصور»: any of PhotoSources.ALL, in the list's order; none ticked = our Saudi set */
+    private void pickPhotoSources() {
+        final String[][] all = PhotoSources.ALL;
+        List<String> cur = prefs.photoSources();
+        String[] labels = new String[all.length];
+        final boolean[] on = new boolean[all.length];
+        for (int i = 0; i < all.length; i++) { labels[i] = all[i][1]; on[i] = cur.contains(all[i][0]); }
+        new Dlg(this).setTitle("مصادر الصور (مجانية، بدون اختيار = صور السعودية)")
+            .setMultiChoiceItems(labels, on, (d, i, checked) -> on[i] = checked)
+            .setPositiveButton("حفظ", (d, w) -> {
+                List<String> v = new ArrayList<>();
+                for (int i = 0; i < all.length; i++) if (on[i]) v.add(all[i][0]);
+                prefs.setPhotoSources(v);
+                render();
+            })
+            .setNegativeButton("إلغاء", null).show();
     }
 
     private void pickPhotoMinutes() {
@@ -864,6 +904,10 @@ public class SettingsActivity extends Activity {
     private static String minutesLabel(int n) {
         if (n == 1) return "دقيقة واحدة";
         if (n == 2) return "دقيقتان";
+        if (n == 1440) return "يوم";
+        if (n == 60) return "ساعة";
+        if (n == 120) return "ساعتان";
+        if (n > 60 && n % 60 == 0) return arabicNum(n / 60) + (n / 60 <= 10 ? " ساعات" : " ساعة");
         return arabicNum(n) + (n <= 10 ? " دقائق" : " دقيقة");
     }
 

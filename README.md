@@ -1,3 +1,10 @@
+> **Bayti TV · بيتي** is a fork of [تلفزيونك · UrTV](https://github.com/tshi-dev/UrTV) by tshi-dev, renamed, with these changes so
+> far: a prayer-time calculation setting (Umm al-Qura, Shia Jaʿfari, Tehran, Gulf, Kuwait, Qatar, Dubai, MWL, Egypt, Karachi, ISNA);
+> free background photo sources (Wikimedia Commons nature, mountains, sunsets, space and picture of the day; Bing's photo of the day)
+> and more change intervals; a settings backup and restore (`optimize/settings.sh`); a fix for big installs timing out on TVs that
+> end background jobs (Sony BRAVIA); and community debloat lists no longer turning off streaming or casting apps.
+> UrTV's own code remains its author's: see [LICENSE](LICENSE) for what the licence covers.
+
 <p align="center"><img src=".github/brand/hero.png" alt="تلفزيونك · UrTV" width="100%"></p>
 
 <h1 align="center">تلفزيونك · UrTV</h1>

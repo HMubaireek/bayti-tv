@@ -21,12 +21,14 @@ import java.util.Locale;
  *   am broadcast -n sa.urtv.screensaver/.SaverReceiver -a sa.urtv.screensaver.SET
  *       [--es city 'الرس'] [--es lat 25.86 --es lon 43.49 --es tz Asia/Kuwait]   (tz is needed for a place that is not in the list) [--es teams '136013:Al-Hilal,150643:Al-Zulfi']
  *       [--es panel prayers] [--es home_panel prayers,hourly,verse|none] [--es greeting on|off] [--es adhanbar on|off] [--es yearstrip on|off] [--es minrating 7] [--es genres Drama,Comedy] [--es langs English]
- *       [--es photos 30] [--es idle 10] [--es digits hindi|latin]
+ *       [--es photos 30] [--es photosrc saudi,nature] [--es idle 10] [--es digits hindi|latin] [--es method umm_alqura|jafari|tehran|gulf|kuwait|qatar|dubai|mwl|egypt|karachi|isna]
  *       [--es cardstyle current|dark1|glass1|dark3|glass3] [--es national auto|off]
  *       [--es markets tasi,gold,btc] [--es mkstyle arrows|prices] [--es stocks 2222,1120,AAPL]
  *       [--es leagues 'Saudi-Arabian Pro League,NBA']
  *       [--es prayeradj on|off] [--es adj_fajr +2 --es adj_dhuhr 0 --es adj_asr 0 --es adj_maghrib -1 --es adj_isha 0]   («تعديل وقت الصلاة», minutes -20..20)
  *       [--es slot matches|weather|fasting|countdown|markets|none] [--es countdown 2026-12-01|clear --es cdname 'رحلة الصيف']
+ *   am broadcast -n sa.urtv.screensaver/.SaverReceiver -a sa.urtv.screensaver.EXPORT                every setting: "backup: <base64>"
+ *   am broadcast -n sa.urtv.screensaver/.SaverReceiver -a sa.urtv.screensaver.IMPORT --es b64 <base64>   (optimize/settings.sh)
  *   am broadcast -n sa.urtv.screensaver/.SaverReceiver -a sa.urtv.screensaver.UPDATE
  *   am broadcast -n sa.urtv.screensaver/.SaverReceiver -a sa.urtv.screensaver.TASKS
  *       --es op list | add --es text 'نص' | done --ei n 1 | del --ei n 1 | clear
@@ -46,6 +48,9 @@ import java.util.Locale;
  * cardstyle = the look of the card beside the clock (Prefs.CARD_STYLES; current is the plain card).
  * markets = up to four of Prefs.MARKETS at the top left, in order; mkstyle = arrows only (as always) or the price and the day's change.
  * stocks = the watchlist of the stocks card (panel stocks): up to Prefs.MAX_STOCKS Tadawul codes (4 digits) or US tickers.
+ * photosrc = where the background photos come from, in order: a comma list of PhotoSources.ALL (saudi, as always; nature mountains sunsets
+ * space potd from Wikimedia Commons; bing), e.g. saudi,nature.
+ * method = how the prayer times are calculated (Prefs.PRAYER_METHODS; umm_alqura as always), for the screensaver and the launcher.
  * digits = hindi (١٢٣, as always) or latin (123). photos = minutes between background photos (Prefs.PHOTO_MINUTES). idle = minutes before the TV starts the
  * screensaver (Prefs.IDLE_MINUTES): this is the system's screen_off_timeout, which a receiver (it runs as this
  * app, not as the shell) may write only when the app holds WRITE_SETTINGS; otherwise it says so and
@@ -91,6 +96,17 @@ public class SaverReceiver extends BroadcastReceiver {
             case "sa.urtv.screensaver.PHOTOS":
                 setResultData(photos(c, p, i));
                 return;
+            case "sa.urtv.screensaver.EXPORT":   // «نسخة الإعدادات» (optimize/settings.sh save): every setting, base64 of JSON
+                try { setResultData("backup: " + PrefsBackup.export(c)); }
+                catch (Exception e) { setResultData("error: backup failed: " + e.getMessage()); }
+                return;
+            case "sa.urtv.screensaver.IMPORT": {   // --es b64 <what EXPORT gave>: the settings back
+                String b64 = i.getStringExtra("b64");
+                if (b64 == null || b64.isEmpty()) { setResultData("error: IMPORT needs --es b64 <backup>"); return; }
+                try { setResultData("restored: " + PrefsBackup.restore(c, b64) + " settings"); }
+                catch (Exception e) { setResultData("error: not a backup of these settings (" + e.getMessage() + ")"); }
+                return;
+            }
             default:
                 setResultData("error: unknown action " + action);
         }
@@ -195,6 +211,18 @@ public class SaverReceiver extends BroadcastReceiver {
         String digits = i.getStringExtra("digits");
         if (digits != null && !isChoice(Prefs.DIGITS, digits))
             return "error: digits is one of " + choices(Prefs.DIGITS);
+        String photoSrc = i.getStringExtra("photosrc");
+        if (photoSrc != null) {
+            for (String k : photoSrc.split(","))
+                if (!PhotoSources.isSource(k.trim())) {
+                    StringBuilder keys = new StringBuilder();
+                    for (String[] s : PhotoSources.ALL) keys.append(keys.length() > 0 ? " " : "").append(s[0]);
+                    return "error: photosrc is a comma list of " + keys;
+                }
+        }
+        String method = i.getStringExtra("method");
+        if (method != null && !isChoice(Prefs.PRAYER_METHODS, method))
+            return "error: method is one of " + choices(Prefs.PRAYER_METHODS);
         String national = i.getStringExtra("national");
         if (national != null && !isChoice(Prefs.NATIONAL, national))
             return "error: national is one of " + choices(Prefs.NATIONAL);
@@ -277,6 +305,8 @@ public class SaverReceiver extends BroadcastReceiver {
         if (rating != null) p.setMinRating(rating);
         if (photos != null) p.setPhotoMinutes(photos);
         if (digits != null) p.setDigits(digits);
+        if (method != null) p.setPrayerMethod(method);
+        if (photoSrc != null) p.setPhotoSources(java.util.Arrays.asList(photoSrc.split(",")));
         if (national != null) p.setNational(national);
         if (cardStyle != null) p.setCardStyle(cardStyle);
         if (mkStyle != null) p.setMkStyle(mkStyle);
@@ -384,6 +414,7 @@ public class SaverReceiver extends BroadcastReceiver {
         return "version: " + BuildConfig.VERSION_NAME + (latest != null ? " (newest: " + latest + ")" : "")
             + "\ncity: " + city[0] + " (" + city[1] + ", " + city[2] + ")"
             + "\ntimezone: " + p.cityTz()
+            + "\nmethod: " + p.prayerMethod()
             + "\nteams: " + Prefs.join(p.teams(), ", ")
             + "\npanel: " + p.panel() + "\nhome_panel: " + p.homePanel()
             + "\ngreeting: " + (p.greeting() ? "on" : "off")
@@ -392,6 +423,7 @@ public class SaverReceiver extends BroadcastReceiver {
             + "\nprayeradj: " + (p.prayerAdjOn() ? "on" : "off") + " " + PrayerAdj.describe(p.prayerAdj())
             + "\nminrating: " + p.minRating()
             + "\nphotos: " + p.photoMinutes()
+            + "\nphotosrc: " + Prefs.join(p.photoSources(), ",")
             + "\ndigits: " + p.digits()
             + "\nnational: " + p.national()
             + "\ncardstyle: " + p.cardStyle()

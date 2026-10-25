@@ -18,8 +18,12 @@ final class Place {
     final String tz;
     /** «تعديل وقت الصلاة»: minutes added to the five prayers (see PrayerAdjust); zeros unless the settings say so */
     final int[] adj;
+    /** «طريقة حساب المواقيت»: the screensaver's #method=; Umm al-Qura unless the settings say otherwise */
+    final PrayerMath.Method method;
 
-    private Place(double lat, double lng, String tz, int[] adj) { this.lat = lat; this.lng = lng; this.tz = tz; this.adj = adj; }
+    private Place(double lat, double lng, String tz, int[] adj, PrayerMath.Method method) {
+        this.lat = lat; this.lng = lng; this.tz = tz; this.adj = adj; this.method = method;
+    }
 
     static Place get(Context c) {
         try (Cursor cur = c.getContentResolver().query(CONFIG, null, null, null, null)) {
@@ -42,13 +46,13 @@ final class Place {
     private static Place bundled(Context c) {
         return new Place(number(c.getString(R.string.latitude), 24.6877),
                 number(c.getString(R.string.longitude), 46.7219),
-                orDefault(c.getString(R.string.timezone), "Asia/Riyadh"), new int[PrayerAdjust.COUNT]);
+                orDefault(c.getString(R.string.timezone), "Asia/Riyadh"), new int[PrayerAdjust.COUNT], PrayerMath.Method.UMM_ALQURA);
     }
 
     /** "city=..&lat=24.7&lon=46.7&tz=Asia%2FRiyadh&..." — the same fragment the page reads. */
     private static Place fromFragment(String fragment) {
         try {
-            String lat = null, lon = null, tz = null;
+            String lat = null, lon = null, tz = null, method = null;
             for (String part : fragment.split("&")) {
                 int eq = part.indexOf('=');
                 if (eq < 0) continue;
@@ -56,9 +60,11 @@ final class Place {
                 if ("lat".equals(key)) lat = value;
                 else if ("lon".equals(key)) lon = value;
                 else if ("tz".equals(key)) tz = value;
+                else if ("method".equals(key)) method = value;
             }
             if (lat == null || lon == null) return null;
-            return new Place(number(lat, 24.6877), number(lon, 46.7219), orDefault(tz, "Asia/Riyadh"), PrayerAdjust.fromFragment(fragment));
+            return new Place(number(lat, 24.6877), number(lon, 46.7219), orDefault(tz, "Asia/Riyadh"), PrayerAdjust.fromFragment(fragment),
+                    PrayerMath.Method.of(method));
         } catch (Exception e) {
             return null;
         }

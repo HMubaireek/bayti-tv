@@ -23,6 +23,9 @@ import java.util.List;
  *   update  ContentValues i = N                      -> 1 when task N is marked done
  *   delete  .../tasks/N                              -> 1 when task N is gone
  *
+ * «مصادر الصور»: query .../photos gives json (the merged list of the chosen photo sources, PhotoSources; null while only our Saudi set
+ * is chosen, so the launcher reads photos/index.json as always) and minutes (how often the photo changes). It may fetch: off the main thread.
+ *
  * «صوري»: the owner's own photos (Own). query .../own gives n (how many), mode (mix|only) and rev (changes whenever
  * the photos do); openFile .../own/N opens photo N (1..n) read-only, which READ_CONFIG allows the launcher. Nothing
  * else can be read or written there. .../own-in takes the next photo from the shell (`content write`), which the
@@ -37,6 +40,12 @@ public class ConfigProvider extends ContentProvider {
         if (isOwn(uri)) {
             MatrixCursor o = new MatrixCursor(new String[] {"n", "mode", "rev"});
             o.addRow(new Object[] {Own.count(getContext()), Own.mode(getContext()), p.ownRev()});
+            return o;
+        }
+        if (isPhotos(uri)) {   // «مصادر الصور»: the merged list (PhotoSources) when other sources than our Saudi set are chosen, else none
+            MatrixCursor o = new MatrixCursor(new String[] {"json", "minutes"});
+            List<String> chosen = p.photoSources();
+            o.addRow(new Object[] {PhotoSources.onlySaudi(chosen) ? null : PhotoSources.index(getContext(), chosen), p.photoMinutes()});
             return o;
         }
         if (isTasks(uri)) {
@@ -56,6 +65,10 @@ public class ConfigProvider extends ContentProvider {
     }
 
     @Override public String getType(Uri uri) { return null; }
+
+    private static boolean isPhotos(Uri uri) {
+        return uri != null && uri.getPathSegments().size() == 1 && "photos".equals(uri.getPathSegments().get(0));
+    }
 
     private static boolean isOwn(Uri uri) {
         return uri != null && uri.getPathSegments().size() == 1 && "own".equals(uri.getPathSegments().get(0));

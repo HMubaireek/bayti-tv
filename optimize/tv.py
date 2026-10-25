@@ -326,9 +326,7 @@ def run_bg(tv, name, cmd, progress=None, limit_s=None):
             # pm install) are safe to run again from the start.
             print(f"   ({name}: this TV doesn't keep background jobs; running it directly)", file=sys.stderr)
             tv.shell(f"rm -f {j}.rc {j}.out {j}.pid")
-            out = tv.shell(f"({cmd}) 2>&1; echo __rc=$?", timeout=limit).rstrip()
-            body, _, rc = out.rpartition("__rc=")
-            return (int(rc) if rc.strip().lstrip("-").isdigit() else 1), body.rstrip()
+            return run_direct(tv, j, cmd, limit)
         if waited >= limit:
             sys.exit(f"!! The {name} job on the TV is still running after {limit // 60} minutes. It is left running there: "
                      "run the same command again to wait for it.")
@@ -344,6 +342,22 @@ def run_bg(tv, name, cmd, progress=None, limit_s=None):
     out = tv.shell(f"cat {j}.out").rstrip()
     tv.shell(f"rm -f {j}.rc {j}.out {j}.pid")
     return (int(rc) if rc.lstrip("-").isdigit() else 1), out
+
+
+HEARTBEAT_S = 5   # how often a direct job says it is still there
+
+
+def run_direct(tv, j, cmd, limit):
+    """The job in this shell, for a TV that ends what a shell leaves behind. A command that prints nothing for 60 s breaks the
+    connection (the transport's read times out), and the retry ran it again from the start: the decode of SmartTube (~33 MB of base64)
+    on a Sony BRAVIA VH1 never got through. So it runs beside a heartbeat: a dot every few seconds while it works, its own output kept
+    in a file and printed after its exit code. Returns (exit code, output)."""
+    out = tv.shell(f"({cmd}) > {j}.out 2>&1 & p=$!; while kill -0 $p 2>/dev/null; do echo .; sleep {HEARTBEAT_S}; done; "
+                   f"wait $p; echo __rc=$?; cat {j}.out 2>/dev/null; rm -f {j}.out", timeout=limit)
+    m = re.search(r"__rc=(-?\d+)\r?\n?", out)
+    if not m:
+        return 1, out.replace(".\n", "").strip()
+    return int(m.group(1)), out[m.end():].rstrip()
 
 
 def cut_back(tmp, i):

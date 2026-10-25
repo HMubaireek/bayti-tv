@@ -71,7 +71,9 @@
       linear-gradient(180deg,rgba(3,10,7,.62) 0%,rgba(3,10,7,.30) 22%,rgba(3,10,7,.12) 46%,rgba(3,10,7,.42) 74%,rgba(2,6,4,.88) 100%),
       radial-gradient(120% 85% at 22% 34%,rgba(3,14,9,.42) 0%,rgba(3,14,9,0) 58%);
   }
-  /* photo credits live in PHOTO-CREDITS.md on GitHub, not on screen */
+  /* our photos' credits live in PHOTO-CREDITS.md on GitHub, not on screen; a photo of another source («مصادر الصور»: Wikimedia's
+     licences ask for the author and the licence where it is shown) has its credit small at the bottom left (.show) */
+  #credit.show{display:block}
   #credit{display:none;
     position:fixed;left:26px;bottom:6px;z-index:4;
     font-size:10px;letter-spacing:.02em;
@@ -598,12 +600,29 @@ const _num = (k, d) => { const v = parseFloat(_Q.get(k)); return isNaN(v) ? d : 
 const _tzOk = z => { try{ new Intl.DateTimeFormat('en',{timeZone:z}); return true; }catch(e){ return false; } };
 // the cards a slot can show (Prefs.PANELS in the app is the same list); «none» is the absence of one
 const CARD_KINDS = ['shows','prayers','forecast','hourly','prayerrow','matches','verse','wisdom','adhkar','stocks','tasks','year','smart','today'];
+// How the prayer times are calculated (#method=, the app's «طريقة حساب المواقيت»): Aladhan's method number, the sun's angle below the
+// horizon for Fajr, for Isha either an angle or minutes after Maghrib (ishaMin; Umm al-Qura adds 30 in Ramadan), and Maghrib's angle
+// (.833 = sunset; the Shia methods wait for the redness to go). The same table as the launcher's PrayerMath.Method.
+const PRAYER_METHODS = {
+  umm_alqura: {id:4,  fajr:18.5, ishaMin:90, ramadanMin:120, maghrib:.833},
+  jafari:     {id:0,  fajr:16,   isha:14,   maghrib:4},
+  tehran:     {id:7,  fajr:17.7, isha:14,   maghrib:4.5},
+  gulf:       {id:8,  fajr:19.5, ishaMin:90, maghrib:.833},
+  kuwait:     {id:9,  fajr:18,   isha:17.5, maghrib:.833},
+  qatar:      {id:10, fajr:18,   ishaMin:90, maghrib:.833},
+  dubai:      {id:16, fajr:18.2, isha:18.2, maghrib:.833},
+  mwl:        {id:3,  fajr:18,   isha:17,   maghrib:.833},
+  egypt:      {id:5,  fajr:19.5, isha:17.5, maghrib:.833},
+  karachi:    {id:1,  fajr:18,   isha:18,   maghrib:.833},
+  isna:       {id:2,  fajr:15,   isha:15,   maghrib:.833},
+};
 const CONFIG = {
   city: _Q.get('city') || 'الرياض',
   latitude: _num('lat', 24.7136),
   longitude: _num('lon', 46.6753),
   timezone: _tzOk(_Q.get('tz') || 'Asia/Riyadh') ? (_Q.get('tz') || 'Asia/Riyadh') : 'Asia/Riyadh',
-  prayerMethod: 4,
+  // #method=umm_alqura|jafari|...: a key of PRAYER_METHODS (anything else = umm_alqura, what it always used)
+  method: PRAYER_METHODS[_Q.get('method')] ? _Q.get('method') : 'umm_alqura',
   // followed teams in priority order: #teams=id,id,... (up to 20); older builds send team1/team2
   teamIds: (_Q.has('teams') ? _Q.get('teams').split(',')
             : [_Q.has('team1') ? _Q.get('team1') : '136013', _Q.has('team2') ? _Q.get('team2') : '136137'])
@@ -638,8 +657,8 @@ const CONFIG = {
     minRating: _num('minrating', 7),
   },
   weekWindowDays: 7,
-  // minutes between background photos: #photos=5|10|15|30|60 (anything else = 30)
-  photoMinutes: (m => [5,10,15,30,60].includes(m) ? m : 30)(_num('photos', 30)),
+  // minutes between background photos: #photos=1|2|5|10|15|20|30|60|120|180|360|720|1440, each divides a day (anything else = 30)
+  photoMinutes: (m => [1,2,5,10,15,20,30,60,120,180,360,720,1440].includes(m) ? m : 30)(_num('photos', 30)),
   // the owner's own photos («صوري»): #own=how many (0-10) and #ownmode=mix (join ours, the default) or only
   own: Math.max(0, Math.min(10, Math.floor(_num('own', 0)))),
   ownMode: _Q.get('ownmode') === 'only' ? 'only' : 'mix',
@@ -814,9 +833,10 @@ function buildPrayers(t){
   });
 }
 
-// Umm al-Qura: Fajr at 18.5°, Maghrib at sunset, Isha 90 min after Maghrib (120 in Ramadan),
-// Asr at shadow factor 1. Same method as Aladhan's method 4, so the offline times match to a minute or two.
+// The offline times by CONFIG.method (PRAYER_METHODS): Umm al-Qura is Fajr at 18.5°, Maghrib at sunset, Isha 90 min after Maghrib
+// (120 in Ramadan); Asr at shadow factor 1 for every method. The same numbers as Aladhan's method, so the times match to a minute or two.
 function computePrayers(){
+  const M = PRAYER_METHODS[CONFIG.method];
   const p = riyadhParts(), lat = CONFIG.latitude, lng = CONFIG.longitude;
   const tz = Math.round((Date.UTC(p.y,p.mo-1,p.d,p.h,p.mi,p.s) - Date.now()) / 60000) / 60;
   const rad = d => d*Math.PI/180, deg = r => r*180/Math.PI;
@@ -843,10 +863,12 @@ function computePrayers(){
     return angleTime(a, t, false);
   };
   const adj = h => h + tz - lng/15;
-  const fajr = adj(angleTime(18.5, 5, true)), dhuhr = adj(noon(12)), asr = adj(asrTime(13));
+  const fajr = adj(angleTime(M.fajr, 5, true)), dhuhr = adj(noon(12)), asr = adj(asrTime(13));
   const sunrise = adj(angleTime(.833, 6, true));
-  const maghrib = adj(angleTime(.833, 18, false));
-  const isha = maghrib + (hijriMonthNow() === 9 ? 120 : 90)/60;
+  const maghrib = adj(angleTime(M.maghrib, 18, false));
+  // an Isha after Maghrib by minutes, or by its own angle (never before Maghrib: at a high latitude in summer the angle is never reached)
+  const isha = M.ishaMin ? maghrib + ((M.ramadanMin && hijriMonthNow() === 9) ? M.ramadanMin : M.ishaMin)/60
+                         : Math.max(maghrib, adj(angleTime(M.isha, 18, false)));
   const hm = h => { const m = Math.round(fix(h, 24)*60) % 1440; return pad(Math.floor(m/60)) + ':' + pad(m%60); };
   // Isha is Maghrib plus its delay and stays an absolute time: past midnight (a late Maghrib at a high latitude) it reads «24:30», not an
   // hour that has already gone today (the rest of the page counts minutes from midnight, so 1470 is after 1439)
@@ -858,7 +880,7 @@ async function loadPrayers(){
   const p = riyadhParts();
   const url = `https://api.aladhan.com/v1/timings/${pad(p.d)}-${pad(p.mo)}-${p.y}`
             + `?latitude=${CONFIG.latitude}&longitude=${CONFIG.longitude}`
-            + `&method=${CONFIG.prayerMethod}&timezonestring=${encodeURIComponent(CONFIG.timezone)}`;
+            + `&method=${PRAYER_METHODS[CONFIG.method].id}&timezonestring=${encodeURIComponent(CONFIG.timezone)}`;
   try{
     const r = await fetchT(url, 12000);
     const j = await r.json();
@@ -2854,6 +2876,8 @@ function pixelShift(){
 // Background photos: the hosted set in photos/ (photos/index.json in the repo). A hosted photo is used only
 // once it has loaded; offline, or if it fails, a bundled one is shown, so the screen is never empty.
 const PHOTO_BASE = 'https://raw.githubusercontent.com/tshi-dev/UrTV/master/photos/';
+// «مصادر الصور»: with other sources the app answers index.json with their merged list, where f is a full https address
+const photoUrl = b => /^https:\/\//.test(b.f) ? b.f : PHOTO_BASE + b.f;
 let REMOTE_BGS = (()=>{ try{ return JSON.parse(localStorage.getItem('photoIndex') || '[]'); }catch(e){ return []; } })();
 
 // The owner's own photos: the app answers OWN_BASE N.jpg (1..CONFIG.own) from its own folder, never from the network.
@@ -2895,7 +2919,7 @@ function showBackground(url, b){
   ph.classList.remove('settle'); void ph.offsetWidth; ph.classList.add('settle');
   cardBlurLater(url);
   const cr = document.getElementById('credit');
-  if(cr) cr.textContent = b.c ? 'الصورة: ' + b.c : '';
+  if(cr){ cr.textContent = b.c ? 'الصورة: ' + b.c : ''; cr.classList.toggle('show', !!b.c && /^https:\/\//.test(b.f || '')); }
 }
 
 // ---- card style blur: a copy of the photo behind the card, blurred once per photo, never a live backdrop-filter ----
@@ -3022,7 +3046,7 @@ function applyBackground(force){
     // what rotates: ours (the hosted set, else the bundled photos once the owner has some), then the owner's; only = theirs alone
     let pool = own;
     if(!only){
-      const ours = set.length ? set.map(b => ({url: PHOTO_BASE + b.f, b})) : own.length ? BGS.map(b => ({url: b.u, b, bundled: true})) : [];
+      const ours = set.length ? set.map(b => ({url: photoUrl(b), b})) : own.length ? BGS.map(b => ({url: b.u, b, bundled: true})) : [];
       pool = ours.concat(own);
     }
     if(!pool.length){ showBackground(local.u, local); return; }
@@ -3039,7 +3063,7 @@ function applyBackground(force){
     img.onerror = () => { clearTimeout(t); fallback(); done = true; };
     img.src = url;
     // fetch the rest of the set once, quietly, so the app has each one on disk before its turn
-    if(!PREFETCHED && set.length){ PREFETCHED = true; setTimeout(() => set.forEach(x => { new Image().src = PHOTO_BASE + x.f; }), 20000); }
+    if(!PREFETCHED && set.length){ PREFETCHED = true; setTimeout(() => set.forEach(x => { new Image().src = photoUrl(x); }), 20000); }
   } catch(e) {}
 }
 

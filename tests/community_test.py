@@ -80,6 +80,12 @@ lst.write_text("# h\n" + "\n".join(["com.tcl.messagebox", "com.tcl.tv", "com.goo
 got = com.packages(str(lst), keep=["com.tcl.tv"], homes=["com.vendor.homeapp"], installed={"com.tcl.messagebox", "com.tcl.tv", "com.tcl.bi", "com.acme.launcher",
                                                                                     "com.google.android.tungsten.setupwraith", "com.vendor.homeapp"})
 check("filter: keep.txt, launchers, the setup wizard, HOME handlers and what is not on the TV are all left out", got == ["com.tcl.messagebox", "com.tcl.bi"], str(got))
+# the Sony BRAVIA VH1 list turned Netflix, its remote button helper and AirPlay/HomeKit off: what people watch or cast with stays on
+watched = ["com.netflix.ninja", "com.netflix.partner.ncm", "com.sony.dtv.homekit", "com.google.android.youtube.tv", "com.google.android.videos",
+           "com.amazon.amazonvideo.livingroom", "net.mbc.shahidTV", "com.apple.atve.sony.appletv", "com.disney.disneyplus", "com.sony.dtv.promos"]
+lst.write_text("# h\n" + "\n".join(watched) + "\n")
+got = com.packages(str(lst), installed=set(watched))
+check("filter: streaming apps, their helpers and casting are never taken from a community list", got == ["com.sony.dtv.promos"], str(got))
 
 # ---- every committed list: credit header, packages only, matching fields
 files = sorted((ROOT / "optimize/lists/community").glob("*.txt"))

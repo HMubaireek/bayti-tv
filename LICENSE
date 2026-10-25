@@ -1,0 +1,34 @@
+Bayti TV · بيتي
+Copyright (c) 2026 HMubaireek and the Bayti TV contributors
+
+WHAT THIS LICENCE COVERS
+
+Bayti TV is a fork of تلفزيونك · UrTV (https://github.com/tshi-dev/UrTV) by tshi-dev, starting from its commit 51b9680.
+UrTV was published without a licence. Its own code, text, images and other content therefore remain the copyright of
+its author, and nothing in this repository grants any rights in them. Using them beyond what GitHub's Terms of Service
+allow (viewing and forking on GitHub) needs the author's permission.
+
+The MIT License below covers only the changes and additions made in Bayti TV after that commit: the code and text its
+contributors wrote. If UrTV's author licenses UrTV, its code is available under that licence too.
+
+Third-party parts keep their own licences:
+- the home screen's base, tv-home by mihirgupta0900: MIT, android/launcher/LICENSE-tv-home
+- the community debloat lists from CleanYourTV: MIT, optimize/lists/community/LICENSE-CleanYourTV.txt
+- the Uthmanic Hafs font: see assets/fonts/UthmanicHafs-NOTICE.txt
+- background photos fetched from Wikimedia Commons at run time: each under its own free licence, credited on screen
+- Bing's photo of the day: © its photographers, shown as Bing offers it, credited on screen
+
+MIT LICENSE (for Bayti TV's own changes and additions)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

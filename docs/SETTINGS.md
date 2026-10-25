@@ -52,8 +52,10 @@ something about the screensaver, the home screen or the TV, find it in the table
 | days left to a date (a trip, a wedding) | العدّ التنازلي | `optimize/saver.sh countdown <YYYY-MM-DD> '<name>'` and `optimize/saver.sh slot countdown` (`countdown clear` removes it) |
 | markets at the top left | الأسواق | `optimize/saver.sh markets <up to 4 of tasi, aramco, spx, btc, gold, silver, xrp>` |
 | prices, not just arrows | عرض الأسواق | `optimize/saver.sh mkstyle prices` (`arrows` is the default) |
+| prayer times by another calculation (Shia, Gulf, Egypt…) | طريقة حساب المواقيت | `optimize/saver.sh method <umm_alqura, jafari, tehran, gulf, kuwait, qatar, dubai, mwl, egypt, karachi, isna>` (`umm_alqura` is the default; `jafari` = الشيعة الاثنا عشرية, Maghrib when the redness has gone and Isha at its own angle). The screensaver, the home screen and the adhan all follow it; «تعديل وقت الصلاة» still moves each prayer by minutes on top |
 | the next occasion, Ramadan, Eid | المناسبة القادمة | always shown in the middle at the bottom; nothing to set |
-| the photo to change more or less often | تبديل الصورة كل | `optimize/saver.sh photos <5, 10, 15, 30, 60>` (minutes) |
+| the photo to change more or less often | تبديل الصورة كل | `optimize/saver.sh photos <1, 2, 5, 10, 15, 20, 30, 60, 120, 180, 360, 720, 1440>` (minutes; the home screen follows it too) |
+| other background photos: nature, mountains, sunsets, space, a photo of the day | مصادر الصور | `optimize/saver.sh photosrc <one or more, comma-separated, in order: saudi, nature, mountains, sunsets, space, potd, bing>` (all free, no account: `saudi` is our set and the default; `nature` `mountains` `sunsets` `space` are Wikimedia Commons' featured pictures, `potd` its picture of the day, `bing` Bing's photo of the day). A photo from Wikimedia or Bing shows its credit small at the bottom left, as its licence asks. Their own photos («صوري») still mix in or replace them |
 | the screensaver to start sooner or later | بدء شاشة التوقف بعد | `optimize/saver.sh idle <1, 2, 5, 10, 15, 30>` (minutes; the TV's own timer) |
 | their own photos as the background (a player, their country, family), 1 to 10, with ours or alone | صوري | `optimize/photos.sh add <files they named>` (made ready here: upright, screen size, no location or camera data), then `optimize/photos.sh mode mix` (with ours, the default) or `optimize/photos.sh mode only`; `optimize/photos.sh list`, `optimize/photos.sh del N`, `optimize/photos.sh clear` (back to ours only), `optimize/photos.sh show` (a screenshot with them; it waits 70 s for the page to settle, so allow 80 s). Ask where the files are; never search their computer |
 | the newest screen now | تحديث الشاشة الآن | `optimize/saver.sh update` (it also updates by itself; keep «التحديث التلقائي للصفحة» on) |
@@ -92,6 +94,7 @@ something about the screensaver, the home screen or the TV, find it in the table
 | TCL: the adhan alarms or the sleep timer stop after a restart | `optimize/autostart.sh` (allows auto-start for our two apps on a TCL and writes it to disk; `autostart.sh check` reads it; the setup does it already) |
 | the person turned debugging off on the TV, is it really closed? | `optimize/find-tv.sh --closed` (`OK: ADB is closed`, `!! ADB still answers …` or `?? Can't tell` when the TV sleeps). The apps' data and content update without ADB; a new version of the apps and any change of settings from the computer need it, so it is turned on again then |
 | a TV system update brought the old home back, or apps back on | `optimize/run.sh again` (settings stay) |
+| keep a copy of all their choices, to put back later (after a reset, a new TV of the same household) | `optimize/settings.sh save` (into `~/.urtv/settings/`, outside this folder), `optimize/settings.sh restore` (the newest; or a file), `optimize/settings.sh list`. Every screensaver setting, the favourites, the Arabic app names, hidden/shown apps, the adhan choices and the apps they kept on. Not their own photos: `optimize/photos.sh add` from their files. After `reset.sh`: `optimize/run.sh` first, then `restore` |
 | undo everything, back as it came | `optimize/reset.sh` (the TV's own screensaver comes back with its settings) |
 | restart the TV | `optimize/venv/bin/python -I optimize/tv.py --reboot` (never a plain `reboot`) |
 | how much memory is free | `optimize/measure.sh after --now` |
@@ -100,6 +103,6 @@ something about the screensaver, the home screen or the TV, find it in the table
 
 ## Not in تلفزيونك yet (say so, and pass it on with `--owner`)
 
-- Asked for, not planned yet: other countries' photos and prayer methods, moving cards around (layout), a news
+- Asked for, not planned yet: other countries' photos, moving cards around (layout), a news
   ticker, a flight countdown with the flight number (the countdown above can count to the trip's date).
 - Not possible: Samsung (Tizen) and LG (webOS) TVs can't run these apps.

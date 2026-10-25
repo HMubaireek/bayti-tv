@@ -24,12 +24,16 @@
 #   optimize/saver.sh langs Arabic,English         episodes card: English Arabic Korean Japanese Turkish Spanish
 #                                                  French Hindi German  ("" = all)
 #   optimize/saver.sh minrating 7                  episodes card: lowest rating shown: 0 6 6.5 7 7.5 8
-#   optimize/saver.sh photos 15                    change the photo every N minutes: 5 10 15 30 60 (default 30)
+#   optimize/saver.sh photos 15                    change the photo every N minutes: 1 2 5 10 15 20 30 60 120 180 360 720 1440 (default 30)
+#   optimize/saver.sh photosrc saudi,nature        where the photos come from, in order (all free, no key): saudi (default) nature
+#                                                  mountains sunsets space potd (Wikimedia Commons) bing (Bing's photo of the day)
 #   optimize/saver.sh idle 10                      the TV starts the screensaver after N idle minutes: 1 2 5 10 15 30
 #                                                  (the TV's own timer; left alone unless you run this)
 #   optimize/saver.sh cardstyle glass1             look of the card beside the clock: current dark1 glass1 dark3 glass3
 #   optimize/saver.sh national off                 the quiet green look on National Day (21-25 Sep) and Founding Day (20-24 Feb): auto (default) or off
 #   optimize/saver.sh digits latin                 numbers: hindi = ١٢٣ (default), latin = 123
+#   optimize/saver.sh method jafari                prayer-time calculation: umm_alqura (default) jafari tehran gulf kuwait qatar dubai
+#                                                  mwl egypt karachi isna; the screensaver and the launcher's adhan both follow it
 #   optimize/saver.sh markets tasi,gold,btc        top left, up to 4 in order: tasi aramco spx btc gold silver xrp (default tasi,spx,btc)
 #   optimize/saver.sh mkstyle prices               markets: arrows (▲▼ only, default) or prices (price and day's change)
 #   optimize/saver.sh stocks 2222 1120 AAPL        watchlist of the stocks card (card stocks): up to 8 Tadawul codes (4 digits) or US tickers
@@ -148,6 +152,7 @@ case "${1:-}" in
   langs)    set1 langs "${2-}" ;;
   minrating)set1 minrating "${2:?usage: optimize/saver.sh minrating 7}" ;;
   photos)   set1 photos "${2:?usage: optimize/saver.sh photos 15}" ;;
+  photosrc) set1 photosrc "${2:?usage: optimize/saver.sh photosrc saudi,nature}" ;;
   cardstyle)set1 cardstyle "${2:?usage: optimize/saver.sh cardstyle glass1}" ;;
   markets)  set1 markets "${2:?usage: optimize/saver.sh markets tasi,gold,btc}" ;;
   mkstyle)  set1 mkstyle "${2:?usage: optimize/saver.sh mkstyle prices}" ;;
@@ -164,6 +169,7 @@ case "${1:-}" in
     send SET "$extra" ;;
   national) set1 national "${2:?usage: optimize/saver.sh national auto|off}" ;;
   digits)   set1 digits "${2:?usage: optimize/saver.sh digits latin}" ;;
+  method)   set1 method "${2:?usage: optimize/saver.sh method umm_alqura|jafari|tehran|gulf|kuwait|qatar|dubai|mwl|egypt|karachi|isna}" ;;
   idle)
     # the app may change the TV's timer only if the owner allowed it; the shell always may
     v=$(quote "${2:?usage: optimize/saver.sh idle 10}") || exit 1
