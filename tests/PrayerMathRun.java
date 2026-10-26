@@ -53,6 +53,8 @@ public final class PrayerMathRun {
         long ishaGap = (ja[5] - ja[4]) / 60_000L;
         check("jafari: Isha by its angle, 45-75 minutes after its Maghrib (not a fixed 90)", ishaGap >= 45 && ishaGap <= 75, ishaGap + " min");
         check("jafari: Dhuhr and Asr as Umm al-Qura", ja[2] == uq[2] && ja[3] == uq[3], hm(ja[2], "Asia/Riyadh") + " " + hm(ja[3], "Asia/Riyadh"));
+        long ss = PrayerMath.sunset(2026, 10, 25, qLat, qLng, "Asia/Riyadh");
+        check("sunset: Umm al-Qura's Maghrib, before the Shia Maghrib", ss == uq[4] && ss < ja[4], hm(ss, "Asia/Riyadh") + " vs " + hm(ja[4], "Asia/Riyadh"));
         long[] mwl = PrayerMath.compute(2026, 10, 25, qLat, qLng, "Asia/Riyadh", true, PrayerMath.Method.of("mwl"));
         check("mwl: no Ramadan delay (Isha by angle)", mwl[5] - mwl[4] != 120 * 60_000L && mwl[5] > mwl[4], String.valueOf((mwl[5] - mwl[4]) / 60000));
         long[] gulfRam = PrayerMath.compute(2026, 10, 25, qLat, qLng, "Asia/Riyadh", true, PrayerMath.Method.of("gulf"));

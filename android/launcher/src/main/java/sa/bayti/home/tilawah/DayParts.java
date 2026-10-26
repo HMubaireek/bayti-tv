@@ -34,10 +34,14 @@ public final class DayParts {
         PrayerTimes t = PrayerTimes.today(c, place);
         long now = System.currentTimeMillis();
         String label, clock;
+        // the sunset itself: Maghrib is the sunset only for the methods that call it so (not the Shia ones, «طريقة حساب المواقيت»)
+        Calendar day = Calendar.getInstance(TimeZone.getTimeZone(place.tz), Locale.US);
+        long sunset = place.method.maghrib < 1 ? t.at[PrayerTimes.MAGHRIB]
+                : PrayerMath.sunset(day.get(Calendar.YEAR), day.get(Calendar.MONTH) + 1, day.get(Calendar.DAY_OF_MONTH), place.lat, place.lng, place.tz);
         if (now < t.at[PrayerTimes.SUNRISE]) {            // before dawn: today's sunrise is next
             label = "الشروق"; clock = t.clock[PrayerTimes.SUNRISE];
-        } else if (now < t.at[PrayerTimes.MAGHRIB]) {
-            label = "الغروب"; clock = t.clock[PrayerTimes.MAGHRIB];
+        } else if (now < sunset) {
+            label = "الغروب"; clock = place.method.maghrib < 1 ? t.clock[PrayerTimes.MAGHRIB] : PrayerMath.clockOf(sunset, place.tz);
         } else {                                          // after sunset: tomorrow's sunrise
             Calendar tomorrow = Calendar.getInstance(TimeZone.getTimeZone(place.tz), Locale.US);
             tomorrow.add(Calendar.DAY_OF_MONTH, 1);

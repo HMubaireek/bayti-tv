@@ -119,6 +119,14 @@ final class PrayerMath {
         return at;
     }
 
+    /**
+     * The sunset of that local day, whatever the method: the Shia methods put Maghrib some 15 minutes after it, so the greeting's
+     * «الغروب» can't be Maghrib's time. Umm al-Qura's Maghrib is the sunset (.833°).
+     */
+    static long sunset(int y, int mo, int d, double lat, double lng, String tz) {
+        return compute(y, mo, d, lat, lng, tz, false, Method.UMM_ALQURA)[MAGHRIB];
+    }
+
     /** The preference key of the day's times: the date in the city's zone and the city itself, so a new city refetches. */
     static String key(long millis, double lat, double lng, String tz) {
         return "times_" + format("yyyyMMdd", millis, tz) + "_" + String.format(Locale.US, "%.3f_%.3f", lat, lng) + "_" + tz;
