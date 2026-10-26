@@ -1604,7 +1604,7 @@ const TEAM_SHORT = {
   'وولفرهامبتون':'وولفز', 'سبورتينغ لشبونة':'سبورتينغ', 'لوس أنجلوس جالاكسي':'جالاكسي', 'البنك الأهلي المصري':'البنك الأهلي',
   ...__TEAMS_SHORT__,   // NBA and NFL: the nickname without the city («ليكرز»), made by src/build.py from teams.json
 };
-const FIT_STEPS = [1, .92, .85, .78, .72];
+const FIT_STEPS = [1, .92, .85, .78, .72, .66, .6];   // .66 and .6 for Tajawal, wider than Thmanyah: the longest MLS pair at 960x540
 const FIT_RANGE = document.createRange();
 function fits(sp){   // to the fraction of a pixel: scrollWidth rounds, and a name short by 0.4 px still got «…»
   FIT_RANGE.selectNodeContents(sp);

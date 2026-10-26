@@ -1191,7 +1191,9 @@ public class MainActivity extends Activity {
         final boolean only = ownCount > 0 && "only".equals(own[1]);
         prefs().edit().putLong("ownRev", (Long) own[2]).apply();
         final String[] remote = only ? new String[0] : remotePhotos();
-        final int base = only ? 0 : wallpapers.length + remote.length;   // ours come first, then the owner's
+        // «مصادر الصور»: with other sources than our Saudi set, their photos replace the bundled ones (still the fallback, offline)
+        final int bundled = prefs().getBoolean("photoIndexSources", false) && remote.length > 0 ? 0 : wallpapers.length;
+        final int base = only ? 0 : bundled + remote.length;   // ours come first, then the owner's
         final int total = only ? ownCount : base + ownCount;
         if (wallIndex < 0) wallIndex = prefs().getInt("wallpaper", -1);
         wallIndex = (wallIndex + 1) % total;
@@ -1210,13 +1212,13 @@ public class MainActivity extends Activity {
                 try {
                     bm = decode(() -> getContentResolver().openInputStream(photo));
                 } catch (java.io.IOException | RuntimeException ignored) { }
-            } else if (idx >= wallpapers.length) {
-                java.io.File f = new java.io.File(getFilesDir(), "photos/" + cacheName(remote[idx - wallpapers.length]));
+            } else if (idx >= bundled) {
+                java.io.File f = new java.io.File(getFilesDir(), "photos/" + cacheName(remote[idx - bundled]));
                 try {
                     if (!f.isFile() && failedRecently(f.getName())) throw new java.io.IOException("failed lately");   // the bundled one meanwhile
                     if (!f.isFile()) {
                         byte[] data;
-                        String want = remote[idx - wallpapers.length];
+                        String want = remote[idx - bundled];
                         try { data = download(want.startsWith("https://") ? want : PHOTO_BASE + want); }
                         catch (java.io.IOException e) { photoFailed.put(f.getName(), System.currentTimeMillis()); throw e; }
                         java.io.File dir = f.getParentFile();
