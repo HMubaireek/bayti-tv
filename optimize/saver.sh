@@ -164,7 +164,7 @@ case "${1:-}" in
   photosrc) set1 photosrc "${2:?usage: optimize/saver.sh photosrc saudi,nature}" ;;
   look)     set1 look "${2:?usage: optimize/saver.sh look minimal|classic}" ;;
   tabs)     set1 tabs "${2:?usage: optimize/saver.sh tabs movies,shows,today|none}" ;;
-  tmdb)     set1 tmdb "${2:?usage: optimize/saver.sh tmdb <the owner's TMDB API key or read token>|clear}" ;;
+  tmdb)     set1 tmdb "${2:?usage: optimize/saver.sh tmdb <TMDB API key or read token>|clear}" ;;
   carousel) set1 carousel "${2:?usage: optimize/saver.sh carousel nature,own|none}" ;;
   titleapp) set1 titleapp "${2:?usage: optimize/saver.sh titleapp auto|nuvio|stremio|none}" ;;
   nextprayer) set1 nextprayer "${2:?usage: optimize/saver.sh nextprayer always|hour|off}" ;;
