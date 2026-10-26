@@ -52,6 +52,13 @@ something about the screensaver, the home screen or the TV, find it in the table
 | days left to a date (a trip, a wedding) | العدّ التنازلي | `optimize/saver.sh countdown <YYYY-MM-DD> '<name>'` and `optimize/saver.sh slot countdown` (`countdown clear` removes it) |
 | markets at the top left | الأسواق | `optimize/saver.sh markets <up to 4 of tasi, aramco, spx, btc, gold, silver, xrp>` |
 | prices, not just arrows | عرض الأسواق | `optimize/saver.sh mkstyle prices` (`arrows` is the default) |
+| the screensaver calmer or as it was (the big clock in the middle) | الشكل | `optimize/saver.sh look <minimal, classic>` (`minimal` is Bayti TV's default: a small light clock at the bottom right, the photo open) |
+| the next prayer only in the hour before it, or hidden | الصلاة القادمة | `optimize/saver.sh nextprayer <always, hour, off>` (`hour`: from an hour before the adhan until the iqama) |
+| no Ramadan countdown / next occasion in the bottom row | المناسبة القادمة | `optimize/saver.sh occasion <on, off>` |
+| fewer tabs on the home screen | التبويبات | `optimize/saver.sh tabs <movies,shows,today, or none>` («الرئيسية» always stays; alone, there is no tab row) |
+| movies and series (the أفلام / مسلسلات tabs) | مفتاح TMDB | they give their own key: `optimize/saver.sh tmdb <KEY>` (`clear` removes it); never print it, never put it in a report or the repo |
+| «شاهد في …» to open a title in their app | فتح العناوين في | `optimize/saver.sh titleapp <auto, nuvio, stremio, none>` (it opens the title's own page: Nuvio by its IMDb or TMDB id, Stremio by its IMDb id) |
+| the home screen's carousel of photos | العرض المتحرك | `optimize/saver.sh carousel <photo sources and own, comma-separated, or none>` (none = off) |
 | prayer times by another calculation (Shia, Gulf, Egypt…) | طريقة حساب المواقيت | `optimize/saver.sh method <umm_alqura, jafari, tehran, gulf, kuwait, qatar, dubai, mwl, egypt, karachi, isna>` (`umm_alqura` is the default; `jafari` = الشيعة الاثنا عشرية, Maghrib when the redness has gone and Isha at its own angle). The screensaver, the home screen and the adhan all follow it; «تعديل وقت الصلاة» still moves each prayer by minutes on top |
 | the next occasion, Ramadan, Eid | المناسبة القادمة | always shown in the middle at the bottom; nothing to set |
 | the photo to change more or less often | تبديل الصورة كل | `optimize/saver.sh photos <1, 2, 5, 10, 15, 20, 30, 60, 120, 180, 360, 720, 1440>` (minutes; the home screen follows it too) |

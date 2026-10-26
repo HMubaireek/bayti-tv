@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <!-- the build: UTC time (YYYYMMDDHHMMSS) of the newest commit of the page's sources, put in by src/build.py. The app loads the page with the newer stamp (its own
      copy or a downloaded one), never by file time, and does not keep a download whose stamp is older than its own (Updater, PageStamp). -->
-<meta name="urtv-build" content="20261025203258">
-<title>شاشة تلفزيونك</title>
+<meta name="urtv-build" content="20261026043417">
+<title>شاشة بيتي</title>
 <style>
   @font-face{font-family:'Tajawal';font-weight:300;font-style:normal;font-display:block;src:url("https://raw.githubusercontent.com/HMubaireek/bayti-tv/master/assets/fonts/Tajawal-Light.woff2") format("woff2")}
   @font-face{font-family:'Tajawal';font-weight:400;font-style:normal;font-display:block;src:url("https://raw.githubusercontent.com/HMubaireek/bayti-tv/master/assets/fonts/Tajawal-Regular.woff2") format("woff2")}
@@ -47,6 +47,16 @@
   html.widget .mid.n2,html.widget .mid.n3{grid-template-columns:minmax(0,560fr) minmax(0,540fr)}
   html.widget .mid .week.w3{grid-column:1/-1}
   html.widget .week{width:100%}
+  /* «يومي» (#board=1): the next prayer and the next occasion, then every card in three columns; the page scrolls under the launcher's
+     tab row (the top padding) */
+  html.board,html.board body{overflow-y:auto;height:auto}
+  html.board .stage{display:flex;flex-direction:column;gap:2.4vh;padding:15vh 3.6vw 8vh;height:auto;min-height:100vh}
+  html.board .bottom{display:flex;order:-1;gap:4vw;justify-content:flex-start;align-items:flex-start;border:0;padding:0}
+  html.board .bottom .p-match{display:none}
+  html.board .bottom .panel{background:rgba(12,18,14,.55);border:1px solid rgba(var(--gold-rgb),.22);border-radius:18px;
+    padding:2.2vh 1.8vw;min-width:22vw}
+  html.board .mid,html.board .mid.n2,html.board .mid.n3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2vw;align-items:start}
+  html.board .mid .week.w3{grid-column:auto}
   html.widget .week.boxes{padding:max(1.7vh,10px) max(1.4vw,14px)}   /* the prayer boxes keep a clear, even distance from the card's edge */
   html,body{
     height:100%;overflow:hidden;background:#040E09;color:var(--sand);
@@ -475,7 +485,12 @@
   .mk .delta.down{color:#EE8B70}
   .mk.px .px{font-variant-numeric:tabular-nums;color:#F6EEDC}
   .mk.px .px[data-u]::after{content:' ' attr(data-u);font-size:.7em;color:#A79C85}
-  .mk.px.g{display:grid;grid-template-columns:repeat(2,max-content);width:max-content;gap:.5vh 1.6em}
+  /* with prices, one market a line, in three aligned columns: the name, the price, the day's change (two columns of pairs did not
+     line up) */
+  .mk.px{display:grid;grid-template-columns:repeat(3,max-content);width:max-content;gap:.55vh .8em;margin-inline-start:auto;
+    align-items:baseline}
+  .mk.px .m{display:contents}
+  .mk.px .delta{justify-self:start}
   .mkup{margin-top:.6vh;text-align:left;font-size:clamp(10px,.82vw,16px);font-weight:300;color:var(--dim);white-space:nowrap}
   .p-prayer.now .big{color:var(--gold-hi);text-shadow:0 0 40px rgba(var(--gold-rgb),.45)}
   .p-prayer.now .label{color:#F1CF8A}
@@ -492,6 +507,36 @@
 
   /* #slot=none: the left panel is gone and the other two mirror each other: the prayer at the right edge, the occasion at the left edge,
      the same width, each text on its outer edge and the same lines (label, big line, small line) at the same heights */
+  /* «المناسبة القادمة» and «الصلاة القادمة» can be hidden; «الصلاة القادمة» also outside its last hour (np-far, #nextprayer=hour) */
+  html.occ-off .p-mid,html.np-off .p-prayer,html.np-far .p-prayer{display:none}
+
+  /* ===== «الشكل»: minimal (Bayti TV's default), the photo first. A light clock at the bottom of its side instead of the big one in the
+     middle, smaller rows with no line above them, lighter veils: rich, but out of the photo's way, like Android TV's own ambient
+     screen. The card beside the clock and every setting keep working; classic is the layout as it was. ===== */
+  html.look-min:not(.widget) .veil{background:
+      linear-gradient(180deg,rgba(3,10,7,.46) 0%,rgba(3,10,7,.14) 20%,rgba(3,10,7,0) 42%,rgba(3,10,7,.18) 70%,rgba(2,6,4,.72) 100%)}
+  html.look-min .top-veil{opacity:.72}
+  html.look-min .bottom-veil{height:26vh;background:linear-gradient(180deg,rgba(2,7,4,0) 0%,rgba(2,7,4,.36) 48%,rgba(2,6,4,.74) 100%)}
+  html.look-min .stage{padding:3vh 3.4vw 4.4vh}
+  html.look-min .rule{display:none}
+  html.look-min .hijri,html.look-min .wxline{font-size:clamp(15px,1.4vw,28px)}
+  html.look-min .greg,html.look-min .wxsub,html.look-min .mk{font-size:clamp(11px,.9vw,18px)}
+  html.look-min .mid{align-items:end}
+  html.look-min .clockwrap{justify-self:start;align-items:flex-start;margin-bottom:1.2vh}
+  html.look-min .clock{font-family:'Tajawal',sans-serif;font-weight:300;letter-spacing:.01em;
+    font-size:clamp(64px,min(8.2vw,15vh),170px);text-shadow:0 2px 28px rgba(0,0,0,.45)}
+  html.look-min .clock .sep{color:#FFFDF6;opacity:.7;font-size:.8em;transform:translateY(-.04em)}
+  html.look-min .clock .ampm{font-size:.24em;font-weight:400;color:#E6DCC4;margin-top:.2em}
+  html.look-min .subline{display:none}
+  html.look-min .bottom{border-top:0;padding-top:0;display:flex;justify-content:space-between;align-items:flex-end;gap:3vw}
+  html.look-min .panel .label{font-size:clamp(10px,.76vw,15px);letter-spacing:.14em;margin-bottom:.45vh;color:#BFB49C}
+  html.look-min .panel .big{font-size:clamp(16px,1.5vw,31px)}
+  html.look-min .panel .sub{margin-top:.5vh;font-size:clamp(10px,.82vw,16px)}
+  html.look-min .p-mid{text-align:center}
+  html.look-min .p-mid .num{font-size:1.05em}
+  html.look-min .p-match{margin-inline-start:auto}
+  html.look-min .mrow:has(.mblock + .mblock) .big{font-size:clamp(14px,1.25vw,26px)}
+
   html.slot-none .p-match{display:none}
   html.slot-none .bottom{grid-template-columns:1fr 1fr}
   html.slot-none .p-mid,html.slot-none .p-mid .big{text-align:left}
@@ -621,6 +666,12 @@ const CONFIG = {
   latitude: _num('lat', 24.7136),
   longitude: _num('lon', 46.6753),
   timezone: _tzOk(_Q.get('tz') || 'Asia/Riyadh') ? (_Q.get('tz') || 'Asia/Riyadh') : 'Asia/Riyadh',
+  // «الشكل»: #look=minimal (Bayti TV's default: a small light clock at the corner, the photo open) or classic (the big clock in the middle)
+  look: _Q.get('look') === 'classic' ? 'classic' : 'minimal',
+  // «المناسبة القادمة» in the bottom row: #occasion=0 hides it (anything else = shown)
+  occasion: _Q.get('occasion') !== '0',
+  // «الصلاة القادمة» in the bottom row: #nextprayer=always (the default), hour (only in the hour before the adhan, and until the iqama) or off
+  nextPrayer: (v => ['hour','off'].includes(v) ? v : 'always')(_Q.get('nextprayer')),
   // #method=umm_alqura|jafari|...: a key of PRAYER_METHODS (anything else = umm_alqura, what it always used)
   method: PRAYER_METHODS[_Q.get('method')] ? _Q.get('method') : 'umm_alqura',
   // followed teams in priority order: #teams=id,id,... (up to 20); older builds send team1/team2
@@ -694,11 +745,15 @@ const CONFIG = {
   // a ring while it has the focus. Only on the launcher's page; the screensaver never has it.
   live: _Q.get('live') === '1',
   // #widget=1: only the cards, on a transparent page (the launcher's home screen shows them)
-  widget: _Q.get('widget') === '1',
+  widget: _Q.get('widget') === '1' || _Q.get('board') === '1',
+  // #board=1: the launcher's «يومي» tab: every card at once in a grid that scrolls, under the next prayer and the next occasion
+  board: _Q.get('board') === '1',
 };
+// «يومي» shows everything the page can, whatever was chosen for the screensaver or the home screen
+const BOARD_CARDS = ['prayers', 'today', 'matches', 'verse', 'wisdom', 'hourly', 'forecast', 'year', 'stocks', 'tasks', 'shows'];
 // The cards on this page: the screensaver's one (#panel=); the launcher's up to three (#home_panel=a,b,c, none or empty = no card;
-// an older launcher sends the one card as #panel=). Each kind once, in order.
-CONFIG.cards = (CONFIG.widget && _Q.has('home_panel') ? _list('home_panel') : [CONFIG.panel])
+// an older launcher sends the one card as #panel=); every one on the board. Each kind once, in order.
+CONFIG.cards = CONFIG.board ? BOARD_CARDS.slice() : (CONFIG.widget && _Q.has('home_panel') ? _list('home_panel') : [CONFIG.panel])
   .filter((k, i, a) => CARD_KINDS.includes(k) && a.indexOf(k) === i).slice(0, 3);
 CONFIG.panel = CONFIG.cards[0] || 'none';   // the first one, for what only needs to know "the card"
 // does a card on this page need that kind's data? The smart card reads what the matches, the adhkar, the prayers and the hours load;
@@ -968,6 +1023,7 @@ function tickPrayer(){
   if(cur){
     const left = (cur.h*60 + cur.mi + CONFIG.iqama[cur.key]) - mins;
     if(!panel.classList.contains('now')) panel.classList.add('now');
+    document.documentElement.classList.remove('np-far');
     setText(elL, 'حان الآن');
     setText(elN, prayerName(cur));
     setText(elT, fmt12(cur.h, cur.mi));
@@ -984,6 +1040,8 @@ function tickPrayer(){
   setText(elN, prayerName(next));
   setText(elT, fmt12(next.h, next.mi));
   setHTML(elC, 'بعد <b>' + untilAdhan(leftM) + '</b>');
+  // «الصلاة القادمة»: only in the last hour before the adhan (#nextprayer=hour); the iqama countdown above always shows
+  document.documentElement.classList.toggle('np-far', CONFIG.nextPrayer === 'hour' && leftM > 60);
 }
 
 // ---- «المناسبة القادمة»: the card in the middle of the bottom row follows the Hijri year ----
@@ -2341,7 +2399,7 @@ function fitCards(){
   if(!CONFIG.widget || CARDS.length < 2) return;
   const mid = document.querySelector('.mid');
   for(let g = 0; g < 120; g++){
-    const tall = mid.getBoundingClientRect().height > innerHeight + .5;
+    const tall = !CONFIG.board && mid.getBoundingClientRect().height > innerHeight + .5;   // the board scrolls: only cut cards shrink
     const cut = CARDS.filter(cardCut);
     if(!tall && !cut.length) return;
     // the cut-off cards first; then, only if the box is too tall, the tallest that can still give something
@@ -3168,6 +3226,9 @@ function boot(){
     renderPanel(false, 'matches');
   });
   if(CONFIG.slot === 'none') document.documentElement.classList.add('slot-none');
+  if(CONFIG.look === 'minimal') document.documentElement.classList.add('look-min');
+  if(!CONFIG.occasion) document.documentElement.classList.add('occ-off');
+  if(CONFIG.nextPrayer === 'off') document.documentElement.classList.add('np-off');
   if(!SLOT_MATCHES) document.getElementById('match-row').textContent = '';   // not «لا شيء هذا الأسبوع»: that is the matches slot's
   if(CONFIG.cardStyle !== 'current') document.documentElement.classList.add('cs-' + CONFIG.cardStyle);
   buildMarkets();
@@ -3238,10 +3299,28 @@ function bootWidget(){
   if(USES('forecast') || USES('hourly')){ loadWeather(); periodic(loadWeather, 30*60*1000); }
   if(USES('matches')){ loadMatches(); periodic(loadMatches, 30*60*1000); periodic(loadLive, 2*60000); }
   if(USES('stocks')){ loadMarkets(); periodic(loadMarkets, 15*60*1000); }
+  if(CONFIG.board) bootBoard();
   cardTimers();
   let lastDay = riyadhDayNumber();
   setInterval(() => { if(riyadhDayNumber() !== lastDay){ lastDay = riyadhDayNumber(); renderPanel(false); if(USES('prayers') || USES('prayerrow') || USES('adhkar')) later(loadPrayers); } }, 60*1000);
   reveal();
+}
+
+// «يومي», the launcher's tab: the next prayer and the next occasion over the cards, the remote scrolls the page (Up at the top gives
+// the focus back to the launcher's tabs, through its Bayti bridge), and the clock of the prayer and the occasion ticks every minute
+function bootBoard(){
+  document.documentElement.classList.add('board');
+  tickOccasion();
+  setInterval(() => { tickPrayer(); tickOccasion(); }, 30*1000);
+  const step = () => Math.round(innerHeight * .45);
+  addEventListener('keydown', e => {
+    if(e.key === 'ArrowDown'){ scrollBy({top: step(), behavior: 'smooth'}); e.preventDefault(); }
+    else if(e.key === 'ArrowUp'){
+      if(scrollY <= 2){ if(window.Bayti) Bayti.toTabs(); }
+      else scrollBy({top: -step(), behavior: 'smooth'});
+      e.preventDefault();
+    }
+  });
 }
 
 document.addEventListener('keydown', e=>{

@@ -142,6 +142,12 @@ public class SettingsActivity extends Activity {
             new Runnable() { public void run() { pickMany("events", "رياضات أخرى", Prefs.EVENTS, "بدون اختيار = بدون"); } });
 
         header("العرض");
+        row("الشكل", Prefs.lookLabel(prefs.look()), R.drawable.ic_eye,
+            new Runnable() { public void run() { pickChoice("الشكل", Prefs.LOOKS, prefs.look(), v -> prefs.setLook(v)); } });
+        row("الصلاة القادمة", Prefs.nextPrayerLabel(prefs.nextPrayer()), R.drawable.ic_eye,
+            new Runnable() { public void run() { pickChoice("الصلاة القادمة", Prefs.NEXT_PRAYER, prefs.nextPrayer(), v -> prefs.setNextPrayer(v)); } });
+        row("المناسبة القادمة (رمضان، العيد…)", prefs.occasion() ? "ظاهرة" : "مخفية", R.drawable.ic_eye,
+            new Runnable() { public void run() { prefs.setOccasion(!prefs.occasion()); render(); } });
         noConv = true;
         row("الأرقام", Prefs.digitsLabel(prefs.digits()), R.drawable.ic_language,
             new Runnable() { public void run() { pickDigits(); } });
@@ -179,6 +185,12 @@ public class SettingsActivity extends Activity {
             row(HOME_CARD_NAMES[k], Prefs.panelLabel(prefs.homePanelAt(k), "بدون"), R.drawable.ic_eye,
                 new Runnable() { public void run() { pickPanel(place); } });
         }
+        row("التبويبات", tabsLabel(), R.drawable.ic_eye, new Runnable() { public void run() { pickTabs(); } });
+        row("مفتاح TMDB (للأفلام والمسلسلات)", prefs.tmdbKey().isEmpty() ? "غير مضاف · أفلام ومسلسلات متوقفة" : "مضاف ✓",
+            R.drawable.ic_settings, new Runnable() { public void run() { askTmdbKey(); } });
+        row("فتح العناوين في", Prefs.titleAppLabel(prefs.titleApp()), R.drawable.ic_play, new Runnable() { public void run() {
+            pickChoice("فتح العناوين في (زر «شاهد في …» في الأفلام والمسلسلات)", Prefs.TITLE_APPS, prefs.titleApp(), v -> prefs.setTitleApp(v)); } });
+        row("العرض المتحرك", carouselLabel(), R.drawable.ic_eye, new Runnable() { public void run() { pickCarousel(); } });
         row("التحية والطقس", prefs.greeting() ? "تعمل" : "متوقفة", R.drawable.ic_eye,
             new Runnable() { public void run() { prefs.setGreeting(!prefs.greeting()); render(); } });
         row("ترتيب التطبيقات المفضلة", "قائمة ترتّب فيها المفضلة بالأسهم", R.drawable.ic_star,
@@ -772,6 +784,91 @@ public class SettingsActivity extends Activity {
         }
         new Dlg(this).raw().setTitle("الأرقام")
             .setSingleChoiceItems(labels, sel, (d, i) -> { prefs.setDigits(Prefs.DIGITS[i][0]); d.dismiss(); render(); })
+            .show();
+    }
+
+    private String tabsLabel() {
+        List<String> on = new ArrayList<>();
+        on.add("الرئيسية");
+        for (String[] t : Prefs.TABS) if (prefs.tabs().contains(t[0])) on.add(t[1]);
+        return on.size() == 1 ? "الرئيسية فقط · بدون تبويبات" : Prefs.join(on, "، ");
+    }
+
+    /** «التبويبات»: أفلام، مسلسلات، يومي can be hidden; «الرئيسية» always stays (alone, the tab row is not shown) */
+    private void pickTabs() {
+        final String[][] tabs = Prefs.TABS;
+        List<String> cur = prefs.tabs();
+        String[] labels = new String[tabs.length];
+        final boolean[] on = new boolean[tabs.length];
+        for (int i = 0; i < tabs.length; i++) { labels[i] = tabs[i][1]; on[i] = cur.contains(tabs[i][0]); }
+        new Dlg(this).setTitle("التبويبات (الرئيسية دائمًا ظاهرة)")
+            .setMultiChoiceItems(labels, on, (d, i, checked) -> on[i] = checked)
+            .setPositiveButton("حفظ", (d, w) -> {
+                List<String> v = new ArrayList<>();
+                for (int i = 0; i < tabs.length; i++) if (on[i]) v.add(tabs[i][0]);
+                prefs.setTabs(v);
+                render();
+            })
+            .setNegativeButton("إلغاء", null).show();
+    }
+
+    /** «مفتاح TMDB»: typed here (or set from the computer: optimize/saver.sh tmdb KEY); empty clears it */
+    private void askTmdbKey() {
+        final EditText in = new EditText(this);
+        in.setHint("API Key أو Read Access Token من themoviedb.org");
+        in.setSingleLine(true);
+        in.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        new Dlg(this).setTitle("مفتاح TMDB").setView(in)
+            .setPositiveButton("حفظ", (d, w) -> {
+                String k = in.getText().toString().trim();
+                if (!k.isEmpty() && !Prefs.tmdbKeyOk(k)) { toast("هذا لا يبدو مفتاح TMDB"); return; }
+                prefs.setTmdbKey(k);
+                render();
+            })
+            .setNeutralButton("حذف المفتاح", (d, w) -> { prefs.setTmdbKey(""); render(); })
+            .setNegativeButton("إلغاء", null).show();
+        in.requestFocus();
+    }
+
+    private String carouselLabel() {
+        List<String> on = new ArrayList<>();
+        for (String k : prefs.carouselSources()) on.add(Prefs.OWN_SOURCE.equals(k) ? "صوري" : PhotoSources.label(k));
+        return on.isEmpty() ? "متوقف · اختر مصدر صور لتشغيله" : Prefs.join(on, "، ");
+    }
+
+    /** «العرض المتحرك»: the home screen's carousel, from any photo source and the owner's own photos; none ticked = off */
+    private void pickCarousel() {
+        final String[][] opts = new String[PhotoSources.ALL.length + 1][];
+        for (int i = 0; i < PhotoSources.ALL.length; i++) opts[i] = PhotoSources.ALL[i];
+        opts[opts.length - 1] = new String[] {Prefs.OWN_SOURCE, "صوري"};
+        List<String> cur = prefs.carouselSources();
+        String[] labels = new String[opts.length];
+        final boolean[] on = new boolean[opts.length];
+        for (int i = 0; i < opts.length; i++) { labels[i] = opts[i][1]; on[i] = cur.contains(opts[i][0]); }
+        new Dlg(this).setTitle("صور العرض المتحرك في الرئيسية (بدون اختيار = متوقف)")
+            .setMultiChoiceItems(labels, on, (d, i, checked) -> on[i] = checked)
+            .setPositiveButton("حفظ", (d, w) -> {
+                List<String> v = new ArrayList<>();
+                for (int i = 0; i < opts.length; i++) if (on[i]) v.add(opts[i][0]);
+                prefs.setCarouselSources(v);
+                render();
+            })
+            .setNegativeButton("إلغاء", null).show();
+    }
+
+    /** Saves one choice of pickChoice (java.util.function needs API 24; this app runs from 21). */
+    private interface Save { void put(String v); }
+
+    /** One of a table's choices ({key, label} rows), saved by `save`; the screen is drawn again after. */
+    private void pickChoice(String title, final String[][] choices, String current, final Save save) {
+        String[] labels = new String[choices.length];
+        int sel = 0;
+        for (int i = 0; i < labels.length; i++) {
+            labels[i] = choices[i][1];
+            if (choices[i][0].equals(current)) sel = i;
+        }
+        new Dlg(this).setTitle(title)
+            .setSingleChoiceItems(labels, sel, (d, i) -> { save.put(choices[i][0]); d.dismiss(); render(); })
             .show();
     }
 

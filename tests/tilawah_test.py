@@ -179,7 +179,8 @@ check("the continue row is «متابعة التلاوة»",
       labels.get("continue_listening") == "متابعة التلاوة", labels.get("continue_listening"))
 
 home = text(JAVA / "MainActivity.java")
-check("the home screen has the «تلاوة وأذان» pill", 'pill("تلاوة وأذان"' in home and "tilawah.MainActivity" in home)
+check("the home screen opens «تلاوة وأذان» from its control center («المزيد»)",
+      'ControlCenter.Tile(R.drawable.ic_listen, "تلاوة وأذان"' in home and "tilawah.MainActivity" in home)
 
 card = text(JAVA / "HomeCard.java")
 check("the home card reads the screensaver's settings",

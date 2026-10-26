@@ -350,6 +350,70 @@ final class Prefs {
     boolean adhanBar() { return sp.getBoolean("adhanBar", true); }
     void setAdhanBar(boolean v) { sp.edit().putBoolean("adhanBar", v).apply(); }
 
+    // «الشكل» of the screensaver (#look=): minimal, Bayti TV's default (a small light clock at the corner, the photo open), or classic
+    static final String[][] LOOKS = {{"minimal", "هادئ · ساعة صغيرة في الزاوية"}, {"classic", "كلاسيكي · ساعة كبيرة في الوسط"}};
+    String look() { return "classic".equals(sp.getString("look", "minimal")) ? "classic" : "minimal"; }
+    void setLook(String v) { sp.edit().putString("look", v).apply(); }
+    static String lookLabel(String v) { return "classic".equals(v) ? LOOKS[1][1] : LOOKS[0][1]; }
+
+    // ---- the home screen's tabs (the launcher reads these through ConfigProvider, never in the page's link) ----
+    // «الرئيسية» is always there; these can be hidden. With none left the tab row is not shown at all.
+    static final String[][] TABS = {{"movies", "أفلام"}, {"shows", "مسلسلات"}, {"today", "يومي"}};
+    List<String> tabs() {
+        String saved = sp.getString("tabs", "movies,shows,today");
+        List<String> out = new ArrayList<>();
+        for (String[] t : TABS) if (Arrays.asList(saved.split(",")).contains(t[0])) out.add(t[0]);
+        return out;
+    }
+    void setTabs(List<String> v) { sp.edit().putString("tabs", join(v, ",")).apply(); }
+
+    /** «مفتاح TMDB»: the owner's own key (v3) or read token (v4) for أفلام and مسلسلات; "" = those two tabs stay off */
+    String tmdbKey() { return sp.getString("tmdbKey", "").trim(); }
+    void setTmdbKey(String v) { sp.edit().putString("tmdbKey", v == null ? "" : v.trim()).apply(); }
+    static boolean tmdbKeyOk(String v) { return v != null && v.trim().matches("[A-Za-z0-9._-]{20,400}"); }
+
+    // «فتح العناوين في»: the app the «شاهد في …» button of أفلام and مسلسلات opens a title in, at its own page (a deep link):
+    // auto = the first of these that is installed; none = no button
+    static final String[][] TITLE_APPS = {{"auto", "تلقائي (أول تطبيق مثبّت)"}, {"nuvio", "Nuvio"}, {"stremio", "Stremio"}, {"none", "بدون"}};
+    String titleApp() {
+        String v = sp.getString("titleApp", "auto");
+        for (String[] a : TITLE_APPS) if (a[0].equals(v)) return v;
+        return "auto";
+    }
+    void setTitleApp(String v) { sp.edit().putString("titleApp", v).apply(); }
+    static String titleAppLabel(String v) {
+        for (String[] a : TITLE_APPS) if (a[0].equals(v)) return a[1];
+        return TITLE_APPS[0][1];
+    }
+
+    // «العرض المتحرك»: the photos of the home screen's carousel, any of PhotoSources.ALL and the owner's own («صوري»); none = no carousel
+    static final String OWN_SOURCE = "own";
+    List<String> carouselSources() {
+        List<String> out = new ArrayList<>();
+        for (String k : sp.getString("carousel", "").split(",")) {
+            String key = k.trim();
+            if ((PhotoSources.isSource(key) || OWN_SOURCE.equals(key)) && !out.contains(key)) out.add(key);
+        }
+        return out;
+    }
+    void setCarouselSources(List<String> v) { sp.edit().putString("carousel", join(v, ",")).apply(); }
+
+    // «المناسبة القادمة» in the bottom row (#occasion=0 hides it)
+    boolean occasion() { return sp.getBoolean("occasion", true); }
+    void setOccasion(boolean v) { sp.edit().putBoolean("occasion", v).apply(); }
+
+    // «الصلاة القادمة» in the bottom row (#nextprayer=): always, hour (only the last hour before the adhan, and until the iqama) or off
+    static final String[][] NEXT_PRAYER = {{"always", "دائمًا"}, {"hour", "قبل الأذان بساعة فقط"}, {"off", "مخفية"}};
+    String nextPrayer() {
+        String v = sp.getString("nextPrayer", "always");
+        return "hour".equals(v) || "off".equals(v) ? v : "always";
+    }
+    void setNextPrayer(String v) { sp.edit().putString("nextPrayer", v).apply(); }
+    static String nextPrayerLabel(String v) {
+        for (String[] o : NEXT_PRAYER) if (o[0].equals(v)) return o[1];
+        return NEXT_PRAYER[0][1];
+    }
+
     /** The slim year strip under the clock, on the screensaver only (default off); sent to the page as #yearstrip=. */
     boolean yearStrip() { return sp.getBoolean("yearStrip", false); }
     void setYearStrip(boolean v) { sp.edit().putBoolean("yearStrip", v).apply(); }
@@ -414,6 +478,9 @@ final class Prefs {
             + "&digits=" + digits()
             + "&cardstyle=" + cardStyle()
             + "&adhanbar=" + (adhanBar() ? "1" : "0")
+            + "&look=" + look()
+            + "&occasion=" + (occasion() ? "1" : "0")
+            + "&nextprayer=" + nextPrayer()
             + "&yearstrip=" + (yearStrip() ? "1" : "0")
             + PrayerAdj.fragment(prayerAdjOn(), prayerAdj())
             + "&national=" + national()

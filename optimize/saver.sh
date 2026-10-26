@@ -25,6 +25,15 @@
 #                                                  French Hindi German  ("" = all)
 #   optimize/saver.sh minrating 7                  episodes card: lowest rating shown: 0 6 6.5 7 7.5 8
 #   optimize/saver.sh photos 15                    change the photo every N minutes: 1 2 5 10 15 20 30 60 120 180 360 720 1440 (default 30)
+#   optimize/saver.sh tabs movies,today            the home screen's tabs besides «الرئيسية»: movies shows today (default all), or none
+#   optimize/saver.sh tmdb KEY                     the owner's own TMDB key (themoviedb.org → Settings → API) for أفلام and مسلسلات;
+#                                                  clear removes it. Never printed back (show says set or none)
+#   optimize/saver.sh titleapp nuvio               where «شاهد في …» in أفلام and مسلسلات opens a title, at its own page: auto (default:
+#                                                  the first installed of Nuvio and Stremio), nuvio, stremio or none
+#   optimize/saver.sh carousel nature,own          the home screen's carousel photos: photosrc's sources and own («صوري»); none = off
+#   optimize/saver.sh look classic                 the screensaver's layout: minimal (default: a small light clock at the corner) or classic
+#   optimize/saver.sh nextprayer hour              «الصلاة القادمة»: always (default), hour (only the last hour before the adhan) or off
+#   optimize/saver.sh occasion off                 «المناسبة القادمة» (Ramadan's countdown…) in the bottom row: on (default) or off
 #   optimize/saver.sh photosrc saudi,nature        where the photos come from, in order (all free, no key): saudi (default) nature
 #                                                  mountains sunsets space potd (Wikimedia Commons) bing (Bing's photo of the day)
 #   optimize/saver.sh idle 10                      the TV starts the screensaver after N idle minutes: 1 2 5 10 15 30
@@ -153,6 +162,13 @@ case "${1:-}" in
   minrating)set1 minrating "${2:?usage: optimize/saver.sh minrating 7}" ;;
   photos)   set1 photos "${2:?usage: optimize/saver.sh photos 15}" ;;
   photosrc) set1 photosrc "${2:?usage: optimize/saver.sh photosrc saudi,nature}" ;;
+  look)     set1 look "${2:?usage: optimize/saver.sh look minimal|classic}" ;;
+  tabs)     set1 tabs "${2:?usage: optimize/saver.sh tabs movies,shows,today|none}" ;;
+  tmdb)     set1 tmdb "${2:?usage: optimize/saver.sh tmdb <the owner's TMDB API key or read token>|clear}" ;;
+  carousel) set1 carousel "${2:?usage: optimize/saver.sh carousel nature,own|none}" ;;
+  titleapp) set1 titleapp "${2:?usage: optimize/saver.sh titleapp auto|nuvio|stremio|none}" ;;
+  nextprayer) set1 nextprayer "${2:?usage: optimize/saver.sh nextprayer always|hour|off}" ;;
+  occasion) set1 occasion "${2:?usage: optimize/saver.sh occasion on|off}" ;;
   cardstyle)set1 cardstyle "${2:?usage: optimize/saver.sh cardstyle glass1}" ;;
   markets)  set1 markets "${2:?usage: optimize/saver.sh markets tasi,gold,btc}" ;;
   mkstyle)  set1 mkstyle "${2:?usage: optimize/saver.sh mkstyle prices}" ;;

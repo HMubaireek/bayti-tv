@@ -21,6 +21,8 @@ import java.util.Locale;
  *   am broadcast -n sa.bayti.screensaver/.SaverReceiver -a sa.bayti.screensaver.SET
  *       [--es city 'الرس'] [--es lat 25.86 --es lon 43.49 --es tz Asia/Kuwait]   (tz is needed for a place that is not in the list) [--es teams '136013:Al-Hilal,150643:Al-Zulfi']
  *       [--es panel prayers] [--es home_panel prayers,hourly,verse|none] [--es greeting on|off] [--es adhanbar on|off] [--es yearstrip on|off] [--es minrating 7] [--es genres Drama,Comedy] [--es langs English]
+ *       [--es tabs movies,shows,today|none] [--es tmdb KEY|clear] [--es carousel nature,own|none] [--es titleapp auto|nuvio|stremio|none]
+ *       [--es look minimal|classic] [--es nextprayer always|hour|off] [--es occasion on|off]
  *       [--es photos 30] [--es photosrc saudi,nature] [--es idle 10] [--es digits hindi|latin] [--es method umm_alqura|jafari|tehran|gulf|kuwait|qatar|dubai|mwl|egypt|karachi|isna]
  *       [--es cardstyle current|dark1|glass1|dark3|glass3] [--es national auto|off]
  *       [--es markets tasi,gold,btc] [--es mkstyle arrows|prices] [--es stocks 2222,1120,AAPL]
@@ -48,6 +50,8 @@ import java.util.Locale;
  * cardstyle = the look of the card beside the clock (Prefs.CARD_STYLES; current is the plain card).
  * markets = up to four of Prefs.MARKETS at the top left, in order; mkstyle = arrows only (as always) or the price and the day's change.
  * stocks = the watchlist of the stocks card (panel stocks): up to Prefs.MAX_STOCKS Tadawul codes (4 digits) or US tickers.
+ * look = minimal (Bayti TV's default: a small light clock at the corner) or classic (the big clock in the middle). nextprayer = always,
+ * hour (only the last hour before the adhan) or off. occasion = on or off (the next occasion, Ramadan's countdown, in the bottom row).
  * photosrc = where the background photos come from, in order: a comma list of PhotoSources.ALL (saudi, as always; nature mountains sunsets
  * space potd from Wikimedia Commons; bing), e.g. saudi,nature.
  * method = how the prayer times are calculated (Prefs.PRAYER_METHODS; umm_alqura as always), for the screensaver and the launcher.
@@ -211,6 +215,38 @@ public class SaverReceiver extends BroadcastReceiver {
         String digits = i.getStringExtra("digits");
         if (digits != null && !isChoice(Prefs.DIGITS, digits))
             return "error: digits is one of " + choices(Prefs.DIGITS);
+        String look = i.getStringExtra("look");
+        if (look != null && !isChoice(Prefs.LOOKS, look)) return "error: look is one of " + choices(Prefs.LOOKS);
+        String nextPrayer = i.getStringExtra("nextprayer");
+        if (nextPrayer != null && !isChoice(Prefs.NEXT_PRAYER, nextPrayer)) return "error: nextprayer is one of " + choices(Prefs.NEXT_PRAYER);
+        String occasion = i.getStringExtra("occasion");
+        if (occasion != null && !"on".equals(occasion) && !"off".equals(occasion)) return "error: occasion is one of on off";
+        String tabs = i.getStringExtra("tabs");
+        List<String> tabList = null;
+        if (tabs != null) {
+            tabList = new ArrayList<>();
+            for (String part : tabs.split(",")) {
+                String k = part.trim();
+                if (k.isEmpty() || "none".equals(k)) continue;
+                if (!isChoice(Prefs.TABS, k)) return "error: tabs is a comma list of " + choices(Prefs.TABS) + ", or none";
+                tabList.add(k);
+            }
+        }
+        String tmdb = i.getStringExtra("tmdb");
+        if (tmdb != null && !"clear".equals(tmdb) && !Prefs.tmdbKeyOk(tmdb)) return "error: tmdb is a TMDB API key or read token, or clear";
+        String titleApp = i.getStringExtra("titleapp");
+        if (titleApp != null && !isChoice(Prefs.TITLE_APPS, titleApp)) return "error: titleapp is one of " + choices(Prefs.TITLE_APPS);
+        String carousel = i.getStringExtra("carousel");
+        List<String> carouselList = null;
+        if (carousel != null) {
+            carouselList = new ArrayList<>();
+            for (String part : carousel.split(",")) {
+                String k = part.trim();
+                if (k.isEmpty() || "none".equals(k)) continue;
+                if (!PhotoSources.isSource(k) && !Prefs.OWN_SOURCE.equals(k)) return "error: carousel is a comma list of photo sources and own, or none";
+                carouselList.add(k);
+            }
+        }
         String photoSrc = i.getStringExtra("photosrc");
         if (photoSrc != null) {
             for (String k : photoSrc.split(","))
@@ -306,6 +342,13 @@ public class SaverReceiver extends BroadcastReceiver {
         if (photos != null) p.setPhotoMinutes(photos);
         if (digits != null) p.setDigits(digits);
         if (method != null) p.setPrayerMethod(method);
+        if (look != null) p.setLook(look);
+        if (tabList != null) p.setTabs(tabList);
+        if (tmdb != null) p.setTmdbKey("clear".equals(tmdb) ? "" : tmdb);
+        if (carouselList != null) p.setCarouselSources(carouselList);
+        if (titleApp != null) p.setTitleApp(titleApp);
+        if (nextPrayer != null) p.setNextPrayer(nextPrayer);
+        if (occasion != null) p.setOccasion("on".equals(occasion));
         if (photoSrc != null) p.setPhotoSources(java.util.Arrays.asList(photoSrc.split(",")));
         if (national != null) p.setNational(national);
         if (cardStyle != null) p.setCardStyle(cardStyle);
@@ -415,6 +458,13 @@ public class SaverReceiver extends BroadcastReceiver {
             + "\ncity: " + city[0] + " (" + city[1] + ", " + city[2] + ")"
             + "\ntimezone: " + p.cityTz()
             + "\nmethod: " + p.prayerMethod()
+            + "\nlook: " + p.look()
+            + "\ntabs: home" + (p.tabs().isEmpty() ? "" : "," + Prefs.join(p.tabs(), ","))
+            + "\ntmdb: " + (p.tmdbKey().isEmpty() ? "none" : "set")   // the key itself is never printed
+            + "\ncarousel: " + (p.carouselSources().isEmpty() ? "off" : Prefs.join(p.carouselSources(), ","))
+            + "\ntitleapp: " + p.titleApp()
+            + "\nnextprayer: " + p.nextPrayer()
+            + "\noccasion: " + (p.occasion() ? "on" : "off")
             + "\nteams: " + Prefs.join(p.teams(), ", ")
             + "\npanel: " + p.panel() + "\nhome_panel: " + p.homePanel()
             + "\ngreeting: " + (p.greeting() ? "on" : "off")

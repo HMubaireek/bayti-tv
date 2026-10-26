@@ -23,6 +23,9 @@ import java.util.List;
  *   update  ContentValues i = N                      -> 1 when task N is marked done
  *   delete  .../tasks/N                              -> 1 when task N is gone
  *
+ * The home screen: query .../home gives tabs («أفلام»، «مسلسلات»، «يومي» shown, "movies,shows,today"), tmdb (the owner's TMDB key, "" when
+ * none), carousel (its photo sources) and title_app (where «شاهد في …» opens a title: auto, nuvio, stremio or none); .../carousel gives json, the merged list of those sources (the owner's own are .../own).
+ *
  * «مصادر الصور»: query .../photos gives json (the merged list of the chosen photo sources, PhotoSources; null while only our Saudi set
  * is chosen, so the launcher reads photos/index.json as always) and minutes (how often the photo changes). It may fetch: off the main thread.
  *
@@ -40,6 +43,18 @@ public class ConfigProvider extends ContentProvider {
         if (isOwn(uri)) {
             MatrixCursor o = new MatrixCursor(new String[] {"n", "mode", "rev"});
             o.addRow(new Object[] {Own.count(getContext()), Own.mode(getContext()), p.ownRev()});
+            return o;
+        }
+        if (isPath(uri, "home")) {   // the home screen's tabs, its TMDB key and its carousel (never in the page's link)
+            MatrixCursor o = new MatrixCursor(new String[] {"tabs", "tmdb", "carousel", "title_app"});
+            o.addRow(new Object[] {Prefs.join(p.tabs(), ","), p.tmdbKey(), Prefs.join(p.carouselSources(), ","), p.titleApp()});
+            return o;
+        }
+        if (isPath(uri, "carousel")) {   // the carousel's photos from its sources (PhotoSources), merged; the owner's own are .../own
+            List<String> src = new java.util.ArrayList<>(p.carouselSources());
+            src.remove(Prefs.OWN_SOURCE);
+            MatrixCursor o = new MatrixCursor(new String[] {"json"});
+            o.addRow(new Object[] {src.isEmpty() ? "[]" : PhotoSources.index(getContext(), src)});
             return o;
         }
         if (isPhotos(uri)) {   // «مصادر الصور»: the merged list (PhotoSources) when other sources than our Saudi set are chosen, else none
@@ -65,6 +80,10 @@ public class ConfigProvider extends ContentProvider {
     }
 
     @Override public String getType(Uri uri) { return null; }
+
+    private static boolean isPath(Uri uri, String name) {
+        return uri != null && uri.getPathSegments().size() == 1 && name.equals(uri.getPathSegments().get(0));
+    }
 
     private static boolean isPhotos(Uri uri) {
         return uri != null && uri.getPathSegments().size() == 1 && "photos".equals(uri.getPathSegments().get(0));

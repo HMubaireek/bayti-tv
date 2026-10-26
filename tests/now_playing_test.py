@@ -39,12 +39,13 @@ check("MainActivity: OK pauses or plays, a long OK opens the player",
       "nowCard.setOnClickListener(v -> NowPlaying.toggle(this))" in main and "nowCard.setOnLongClickListener(v -> { startActivity(NowPlaying.player(this)); return true; })" in main)
 check("MainActivity: ◀ is the previous surah and ▶ the next while the card has the focus, for a surah only (a station: ◀ goes on to the pills)",
       "NowPlaying.prev(this); else NowPlaying.next(this)" in main and "if (s.show && !s.radio) {" in main and "KEYCODE_DPAD_LEFT) NowPlaying.prev" in main)
-check("MainActivity: it is the first child of the pills row, a pill's height, hidden until something plays: the pills do not move",
-      'right.addView(nowCard, 0, llp(-2, dp(Pill.HEIGHT), dp(10), 0, 0, 0))' in main and "nowCard.setVisibility(View.GONE);" in main)
+check("MainActivity: it is the first child of the buttons' row, a pill's height, hidden until something plays: the buttons do not move",
+      'left.addView(nowCard, 0, llp(-2, dp(Pill.HEIGHT), dp(10), 0, 0, 0))' in main and "nowCard.setVisibility(View.GONE);" in main)
 check("MainActivity: it goes with the playback, and the focus goes back to the first pill if it had it",
       "nowCard.hasFocus() && !pills.isEmpty()) pills.get(0).requestFocus()" in main)
-check("MainActivity: it takes the focus like a pill (D-pad order: ▶ from the first pill reaches it; down goes to the cards or the dock)",
-      "nowCard.setNextFocusDownId(card != null ? card.getId()" in main and "nowCard.setNextFocusLeftId(pills.get(0).getId())" in main)
+check("MainActivity: it takes the focus like a pill (one of the top bar's row, between the tabs and the buttons; down as theirs)",
+      "if (nowCard != null && nowCard.getVisibility() == View.VISIBLE) top.add(nowCard);" in main and "top.addAll(pills);" in main
+      and "p.setNextFocusDownId(downId != View.NO_ID ? downId : p.getId());" in main)
 # the screensaver's own «يُتلى الآن» card (item 6): the launcher answers a signed-only provider, the app gives the page one read-only call
 manifest_h = (ROOT / "android/launcher/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
 manifest_s = (ROOT / "android/app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")

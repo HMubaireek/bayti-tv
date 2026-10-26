@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>بيتي · أفلام ومسلسلات</title>
+<!--
+  The launcher's «أفلام» and «مسلسلات» tabs (#kind=movie or #kind=tv): rows of titles from TMDB, the way a streaming app's home looks on
+  a TV. The billboard at the top shows the focused title; OK opens its details, with its trailer when TMDB has one. The owner's own TMDB
+  key comes from the launcher (window.Bayti.key()), never in this page's link. The remote: Left is the next card (the rows read from
+  the right), Down the next row, Up from the first row goes back to the launcher's tabs, Back closes the details.
+  Data: themoviedb.org's API («This product uses the TMDB API but is not endorsed or certified by TMDB», shown at the end).
+-->
+<style>
+  @font-face{font-family:'Tajawal';font-weight:300;src:url("../fonts/Tajawal-Light.woff2") format("woff2")}
+  @font-face{font-family:'Tajawal';font-weight:400;src:url("../fonts/Tajawal-Regular.woff2") format("woff2")}
+  @font-face{font-family:'Tajawal';font-weight:500;src:url("../fonts/Tajawal-Medium.woff2") format("woff2")}
+  @font-face{font-family:'Tajawal';font-weight:700;src:url("../fonts/Tajawal-Bold.woff2") format("woff2")}
+  :root{--bg:#0b0b0c;--gold:#D6AF6B;--sand:#F3EBD9;--dim:#A9A39A;--card-w:15.2vw;--gap:.9vw;--edge:3.6vw}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--sand);font-family:'Tajawal',system-ui,sans-serif;height:100%;overflow:hidden}
+
+  /* the billboard: the focused title's backdrop, dark toward the right where its words are (the page reads from the right) */
+  .bill{position:fixed;inset:0 0 auto 0;height:68vh;overflow:hidden}
+  .bill .img{position:absolute;inset:0;background-size:cover;background-position:center 20%;opacity:0;transition:opacity .7s ease}
+  .bill .img.on{opacity:1}
+  .bill::after{content:'';position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(270deg,var(--bg) 0%,rgba(11,11,12,.88) 26%,rgba(11,11,12,.25) 58%,rgba(11,11,12,0) 76%),
+               linear-gradient(0deg,var(--bg) 0%,rgba(11,11,12,.6) 18%,rgba(11,11,12,0) 44%),
+               linear-gradient(180deg,rgba(11,11,12,.75) 0%,rgba(11,11,12,0) 22%)}
+  .info{position:fixed;top:16vh;right:var(--edge);width:40vw;z-index:2}
+  .info .kind{font-size:clamp(11px,.9vw,17px);letter-spacing:.3em;color:var(--gold);font-weight:500}
+  .info h1{margin-top:1vh;font-size:clamp(28px,3.2vw,64px);font-weight:700;line-height:1.15;color:#fff;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .info .meta{margin-top:1.4vh;display:flex;gap:1.1em;align-items:center;font-size:clamp(12px,1vw,20px);color:#D9D2C4;flex-wrap:wrap}
+  .info .meta .star{color:#F5C518}
+  .info .meta .chip{border:1px solid rgba(255,255,255,.35);border-radius:4px;padding:.05em .45em;font-size:.85em}
+  .info p{margin-top:1.6vh;font-size:clamp(13px,1.08vw,21px);line-height:1.7;color:#CFC8BA;font-weight:300;
+    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+
+  /* the rows: the focused one comes up under the billboard; in it the focused card holds the right edge */
+  .rows{position:fixed;top:58vh;right:0;left:0;bottom:0;overflow:hidden;z-index:3}
+  .track{transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+  .row{height:24vh;padding-top:1.2vh}
+  .row h2{margin-right:var(--edge);font-size:clamp(14px,1.25vw,24px);font-weight:500;color:#EDE6D6;margin-bottom:1.1vh}
+  .row:not(.cur) h2{color:#8E887E}
+  .strip{display:flex;gap:var(--gap);padding:0 var(--edge);transition:transform .4s cubic-bezier(.2,.8,.2,1)}
+  .card{flex:0 0 var(--card-w);aspect-ratio:16/9;border-radius:8px;position:relative;overflow:hidden;background:#1c1c1f center/cover no-repeat;
+    transition:transform .25s ease,box-shadow .25s ease,opacity .25s;opacity:.78}
+  .row.cur .card{opacity:.95}
+  .card .t{position:absolute;inset:auto 0 0 0;padding:1.8em .7em .55em;font-size:clamp(11px,.85vw,16px);font-weight:500;color:#fff;
+    background:linear-gradient(0deg,rgba(0,0,0,.85),rgba(0,0,0,0));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card.noimg{background:linear-gradient(135deg,#2a2622,#141414)}
+  .card.noimg .t{inset:0;display:flex;align-items:center;justify-content:center;white-space:normal;text-align:center;background:none}
+  body.active .card.f{transform:scale(1.12);opacity:1;z-index:2;box-shadow:0 0 0 3px #fff,0 18px 40px rgba(0,0,0,.6)}
+  .attr{position:fixed;left:var(--edge);bottom:1.6vh;z-index:4;font-size:11px;color:#6d675f}
+
+  /* details: OK on a card */
+  .det{position:fixed;inset:0;z-index:10;background:var(--bg);display:none}
+  .det.on{display:block}
+  .det .img{position:absolute;inset:0;background-size:cover;background-position:center 20%}
+  .det::after{content:'';position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(270deg,var(--bg) 0%,rgba(11,11,12,.93) 38%,rgba(11,11,12,.35) 72%,rgba(11,11,12,.1) 100%),
+               linear-gradient(0deg,var(--bg) 0%,rgba(11,11,12,0) 40%)}
+  .det .box{position:absolute;top:14vh;right:var(--edge);width:46vw;z-index:2}
+  .det h1{font-size:clamp(30px,3.4vw,68px);font-weight:700;color:#fff;line-height:1.15}
+  .det .tag{margin-top:1vh;color:var(--gold);font-size:clamp(13px,1.1vw,22px)}
+  .det .meta{margin-top:1.6vh;display:flex;gap:1.1em;flex-wrap:wrap;color:#D9D2C4;font-size:clamp(12px,1vw,20px)}
+  .det .meta .star{color:#F5C518}
+  .det p{margin-top:2vh;font-size:clamp(14px,1.15vw,23px);line-height:1.75;color:#D4CDBF;font-weight:300;
+    display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden}
+  .det .cast{margin-top:2vh;font-size:clamp(12px,.95vw,19px);color:#A9A39A}
+  .det .cast b{color:#DDD5C6;font-weight:500}
+  .det .btns{margin-top:3.2vh;display:flex;gap:1vw}
+  .det .btn{padding:.7em 1.6em;border-radius:8px;font-size:clamp(14px,1.15vw,23px);font-weight:500;background:rgba(255,255,255,.16);color:#fff}
+  .det .btn.f{background:#fff;color:#111}
+
+  .empty{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh;color:var(--dim);
+    font-size:clamp(16px,1.4vw,28px);text-align:center;padding:0 10vw}
+  .empty b{color:var(--sand);font-size:1.3em}
+</style>
+</head>
+<body>
+<div class="bill"><div class="img"></div><div class="img"></div></div>
+<div class="info" id="info"></div>
+<div class="rows"><div class="track" id="track"></div></div>
+<div class="attr">This product uses the TMDB API but is not endorsed or certified by TMDB.</div>
+<div class="det" id="det"><div class="img" id="det-img"></div><div class="box" id="det-box"></div></div>
+<script>
+'use strict';
+const Q = new URLSearchParams(location.hash.slice(1));
+const KIND = Q.get('kind') === 'tv' ? 'tv' : 'movie';
+const LATIN = Q.get('digits') === 'latin';
+// the launcher's bridge (a browser: #key= and #app= for a test). appName(): the app titles open in («فتح العناوين في»: Nuvio, Stremio)
+// or ""; watch(kind, tmdb id, IMDb id) opens the title's own page in it
+const B = window.Bayti || {key: () => Q.get('key') || '', appName: () => Q.get('app') || '', toTabs(){}, trailer(){}, watch(){}};
+const APP = String(B.appName ? B.appName() : '' || '');
+const KEY = String(B.key() || '').trim();
+const API = 'https://api.themoviedb.org/3/', IMG = 'https://image.tmdb.org/t/p/';
+const NF = new Intl.NumberFormat('ar-SA-u-nu-' + (LATIN ? 'latn' : 'arab'), {maximumFractionDigits: 1});
+const num = n => NF.format(n);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+// the rows of each tab: their title and their request (the page asks for Arabic titles and words, and Saudi release dates)
+const ROWS = KIND === 'movie' ? [
+  ['الأكثر رواجًا هذا الأسبوع', 'trending/movie/week'],
+  ['يُعرض الآن في السينما', 'movie/now_playing?region=SA'],
+  ['الأكثر شعبية', 'movie/popular'],
+  ['أفلام عربية', 'discover/movie?with_original_language=ar&sort_by=popularity.desc'],
+  ['الأعلى تقييمًا', 'movie/top_rated'],
+  ['قريبًا', 'movie/upcoming?region=SA'],
+  ['أكشن', 'discover/movie?with_genres=28&sort_by=popularity.desc'],
+  ['كوميديا', 'discover/movie?with_genres=35&sort_by=popularity.desc'],
+  ['دراما', 'discover/movie?with_genres=18&sort_by=popularity.desc'],
+  ['إثارة وتشويق', 'discover/movie?with_genres=53&sort_by=popularity.desc'],
+  ['خيال علمي', 'discover/movie?with_genres=878&sort_by=popularity.desc'],
+  ['للعائلة', 'discover/movie?with_genres=10751&sort_by=popularity.desc'],
+  ['رسوم متحركة', 'discover/movie?with_genres=16&sort_by=popularity.desc'],
+] : [
+  ['الأكثر رواجًا هذا الأسبوع', 'trending/tv/week'],
+  ['الأكثر شعبية', 'tv/popular'],
+  ['مسلسلات عربية', 'discover/tv?with_original_language=ar&sort_by=popularity.desc'],
+  ['تُعرض هذه الأيام', 'tv/on_the_air'],
+  ['الأعلى تقييمًا', 'tv/top_rated'],
+  ['دراما', 'discover/tv?with_genres=18&sort_by=popularity.desc'],
+  ['جريمة وغموض', 'discover/tv?with_genres=80&sort_by=popularity.desc'],
+  ['كوميديا', 'discover/tv?with_genres=35&sort_by=popularity.desc'],
+  ['خيال علمي وفانتازيا', 'discover/tv?with_genres=10765&sort_by=popularity.desc'],
+  ['مسلسلات كورية', 'discover/tv?with_original_language=ko&sort_by=popularity.desc'],
+  ['مسلسلات تركية', 'discover/tv?with_original_language=tr&sort_by=popularity.desc'],
+  ['أنمي', 'discover/tv?with_genres=16&with_original_language=ja&sort_by=popularity.desc'],
+];
+
+// a v4 read token is a long JWT (eyJ…): it goes in the header; a v3 key goes in the link
+const BEARER = KEY.startsWith('eyJ');
+async function api(path, lang = 'ar'){
+  const u = API + path + (path.includes('?') ? '&' : '?') + 'language=' + lang + (BEARER ? '' : '&api_key=' + encodeURIComponent(KEY));
+  const r = await fetch(u, BEARER ? {headers: {Authorization: 'Bearer ' + KEY, accept: 'application/json'}} : {});
+  if(!r.ok) throw new Error('TMDB ' + r.status);
+  return r.json();
+}
+
+// the rows' lists, kept for 6 hours: the tab opens at once with the last ones, then they are refreshed
+const CACHE = 'tmdb:' + KIND, CACHE_MS = 6 * 3600 * 1000;
+function cached(){ try{ const c = JSON.parse(localStorage.getItem(CACHE) || 'null'); return c && c.rows ? c : null; }catch(e){ return null; } }
+function keep(rows){ try{ localStorage.setItem(CACHE, JSON.stringify({at: Date.now(), rows})); }catch(e){} }
+
+const slim = x => ({id: x.id, t: x.title || x.name || x.original_title || x.original_name || '', o: x.overview || '',
+  b: x.backdrop_path || '', p: x.poster_path || '', d: (x.release_date || x.first_air_date || '').slice(0, 4),
+  v: x.vote_average || 0, g: x.genre_ids || [], ad: !!x.adult});
+async function loadRows(){
+  const out = await Promise.all(ROWS.map(async ([title, path]) => {
+    try{
+      const j = await api(path);
+      const items = (j.results || []).map(slim).filter(x => !x.ad && (x.b || x.p) && x.t).slice(0, 20);
+      return {title, items};
+    }catch(e){ return {title, items: []}; }
+  }));
+  return out.filter(r => r.items.length);
+}
+
+let GENRES = {};
+async function loadGenres(){
+  try{ const j = await api('genre/' + KIND + '/list'); (j.genres || []).forEach(g => GENRES[g.id] = g.name); }catch(e){}
+}
+
+// ---- drawing
+let DATA = [], R = 0, C = [];   // the rows, the focused row, the focused card of each row
+const track = document.getElementById('track'), info = document.getElementById('info');
+function draw(){
+  track.innerHTML = DATA.map((row, i) => `<section class="row" data-r="${i}"><h2>${esc(row.title)}</h2><div class="strip">`
+    + row.items.map(x => {
+        const img = x.b ? IMG + 'w300' + x.b : x.p ? IMG + 'w342' + x.p : '';
+        return `<div class="card${img ? '' : ' noimg'}" style="${img ? `background-image:url('${img}')` : ''}"><div class="t">${esc(x.t)}</div></div>`;
+      }).join('') + '</div></section>').join('');
+  C = DATA.map((_, i) => C[i] || 0);
+  focus(false);
+}
+function focus(scroll = true){
+  const rows = track.children;
+  if(!rows.length) return;
+  R = Math.max(0, Math.min(R, rows.length - 1));
+  [...rows].forEach((row, i) => {
+    row.classList.toggle('cur', i === R);
+    const cards = row.querySelectorAll('.card');
+    C[i] = Math.max(0, Math.min(C[i], cards.length - 1));
+    cards.forEach((c, k) => c.classList.toggle('f', i === R && k === C[i]));
+    // the focused card holds the right edge: the strip moves right by the cards before it (RTL: a positive shift)
+    const w = cards[0] ? cards[0].getBoundingClientRect().width + parseFloat(getComputedStyle(row.querySelector('.strip')).columnGap || 0) : 0;
+    row.querySelector('.strip').style.transform = `translateX(${C[i] * w}px)`;
+  });
+  track.style.transform = `translateY(${-rows[R].offsetTop}px)`;
+  billboard(DATA[R].items[C[R]]);
+}
+
+// the billboard follows the focus, a moment after it stops moving
+let billT = 0, billOn = 0, billId = null;
+function billboard(x){
+  clearTimeout(billT);
+  billT = setTimeout(() => {
+    if(!x || x.id === billId) return;
+    billId = x.id;
+    const imgs = document.querySelectorAll('.bill .img'), next = imgs[1 - billOn];
+    const src = x.b ? IMG + 'w1280' + x.b : x.p ? IMG + 'w780' + x.p : '';
+    const show = () => { next.style.backgroundImage = src ? `url('${src}')` : 'none'; next.classList.add('on'); imgs[billOn].classList.remove('on'); billOn = 1 - billOn; };
+    if(src){ const im = new Image(); im.onload = show; im.onerror = show; im.src = src; } else show();
+    const g = x.g.map(id => GENRES[id]).filter(Boolean).slice(0, 3);
+    info.innerHTML = `<div class="kind">${KIND === 'movie' ? 'فيلم' : 'مسلسل'}</div><h1>${esc(x.t)}</h1>
+      <div class="meta">${x.v ? `<span><span class="star">★</span> ${num(Math.round(x.v * 10) / 10)}</span>` : ''}${x.d ? `<span>${num(+x.d).replace(/[٬,]/g, '')}</span>` : ''}${g.map(n => `<span class="chip">${esc(n)}</span>`).join('')}</div>
+      <p>${esc(x.o)}</p>`;
+    if(!x.o) english(x);
+  }, 220);
+}
+// no Arabic words for it: TMDB's English ones
+const EN = {};
+async function english(x){
+  if(EN[x.id] === undefined){ try{ EN[x.id] = (await api(KIND + '/' + x.id, 'en-US')).overview || ''; }catch(e){ EN[x.id] = ''; } }
+  if(billId === x.id && EN[x.id]){ const p = info.querySelector('p'); if(p) p.textContent = EN[x.id]; }
+}
+
+// ---- details
+const det = document.getElementById('det');
+let DET = null, BTN = 0;
+async function openDetails(x){
+  DET = {x, trailer: null};
+  BTN = 0;
+  document.getElementById('det-img').style.backgroundImage = x.b ? `url('${IMG}w1280${x.b}')` : 'none';
+  det.classList.add('on');
+  renderDet({});
+  try{
+    const d = await api(KIND + '/' + x.id + '?append_to_response=videos,credits,external_ids&include_video_language=ar,en');
+    if(DET && DET.x === x){
+      const vids = (d.videos && d.videos.results || []).filter(v => v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser'));
+      DET.trailer = vids.length ? (vids.find(v => v.iso_639_1 === 'ar') || vids[0]).key : null;
+      if(!d.overview){ try{ d.overview = (await api(KIND + '/' + x.id, 'en-US')).overview; }catch(e){} }
+      DET.d = d;
+      renderDet(d);
+    }
+  }catch(e){}
+}
+function renderDet(d){
+  const x = DET.x, len = d.runtime ? num(d.runtime) + ' دقيقة' : d.number_of_seasons ? num(d.number_of_seasons) + (d.number_of_seasons > 2 && d.number_of_seasons < 11 ? ' مواسم' : ' موسم') : '';
+  const genres = (d.genres || []).map(g => g.name).slice(0, 4);
+  const cast = (d.credits && d.credits.cast || []).slice(0, 5).map(c => c.name);
+  const btns = detButtons().map(b => b.label);
+  BTN = Math.min(BTN, btns.length - 1);
+  document.getElementById('det-box').innerHTML = `<h1>${esc(d.title || d.name || x.t)}</h1>${d.tagline ? `<div class="tag">${esc(d.tagline)}</div>` : ''}
+    <div class="meta">${x.v ? `<span><span class="star">★</span> ${num(Math.round(x.v * 10) / 10)}</span>` : ''}${x.d ? `<span>${num(+x.d).replace(/[٬,]/g, '')}</span>` : ''}${len ? `<span>${len}</span>` : ''}${genres.map(n => `<span>${esc(n)}</span>`).join('')}</div>
+    <p>${esc(d.overview || x.o || '')}</p>${cast.length ? `<div class="cast"><b>بطولة:</b> ${esc(cast.join('، '))}</div>` : ''}
+    <div class="btns">${btns.map((b, i) => `<div class="btn${i === BTN ? ' f' : ''}">${b}</div>`).join('')}</div>`;
+}
+// the details' buttons: «شاهد في Nuvio» (the title's own page in the chosen app) first, then the trailer, then back
+function detButtons(){
+  const out = [];
+  if(APP) out.push({label: '▶  شاهد في ' + APP, run: () => {
+    const ids = DET.d && DET.d.external_ids || {};
+    B.watch(KIND, String(DET.x.id), String(ids.imdb_id || (DET.d && DET.d.imdb_id) || ''));
+  }});
+  if(DET.trailer) out.push({label: (APP ? '' : '▶  ') + 'الإعلان', run: () => B.trailer(DET.trailer)});
+  out.push({label: 'رجوع', run: closeDetails});
+  return out;
+}
+function closeDetails(){ det.classList.remove('on'); DET = null; }
+// the launcher's Back: true when the page used it (the details closed)
+window.baytiBack = () => { if(DET){ closeDetails(); return true; } return false; };
+
+// ---- the remote
+addEventListener('keydown', e => {
+  const k = e.key;
+  if(DET){
+    const btns = detButtons();
+    if(k === 'ArrowLeft'){ BTN = Math.min(btns.length - 1, BTN + 1); renderDet(DET.d || {}); }
+    else if(k === 'ArrowRight'){ BTN = Math.max(0, BTN - 1); renderDet(DET.d || {}); }
+    else if(k === 'Enter'){ const b = btns[Math.min(BTN, btns.length - 1)]; if(b) b.run(); }
+    else if(k === 'Escape' || k === 'Backspace') closeDetails();
+    e.preventDefault();
+    return;
+  }
+  if(!DATA.length) { if(k === 'ArrowUp') B.toTabs(); return; }
+  const row = DATA[R];
+  if(k === 'ArrowLeft'){ C[R] = Math.min(row.items.length - 1, C[R] + 1); focus(); }
+  else if(k === 'ArrowRight'){ C[R] = Math.max(0, C[R] - 1); focus(); }
+  else if(k === 'ArrowDown'){ R = Math.min(DATA.length - 1, R + 1); focus(); }
+  else if(k === 'ArrowUp'){ if(R === 0) B.toTabs(); else { R--; focus(); } }
+  else if(k === 'Enter'){ openDetails(row.items[C[R]]); }
+  else return;
+  e.preventDefault();
+});
+// the focus ring shows only while the page has the remote (not while the launcher's tabs do)
+addEventListener('focus', () => document.body.classList.add('active'));
+addEventListener('blur', () => document.body.classList.remove('active'));
+window.baytiActive = on => document.body.classList.toggle('active', !!on);
+
+// ---- start
+async function start(){
+  if(!KEY){
+    document.body.insertAdjacentHTML('beforeend', '<div class="empty"><b>أضف مفتاح TMDB</b>في إعدادات شاشة التوقف ← الشاشة الرئيسية ← مفتاح TMDB</div>');
+    return;
+  }
+  loadGenres().then(() => { billId = null; if(DATA.length) billboard(DATA[R].items[C[R]]); });
+  const c = cached();
+  if(c){ DATA = c.rows; draw(); }
+  if(!c || Date.now() - c.at > CACHE_MS){
+    try{
+      const rows = await loadRows();
+      if(rows.length){ keep(rows); const was = DATA.length; DATA = rows; if(!was) draw(); }
+      else if(!DATA.length) throw new Error('nothing');
+    }catch(e){
+      if(!DATA.length) document.body.insertAdjacentHTML('beforeend',
+        '<div class="empty"><b>تعذّر الوصول إلى TMDB</b>تأكد من الإنترنت ومن مفتاح TMDB في الإعدادات</div>');
+    }
+  }
+}
+start();
+</script>
+</body>
+</html>

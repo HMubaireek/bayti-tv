@@ -25,15 +25,17 @@ check("Pill: the name is the content description (a screen reader hears it thoug
 check("Pill: a focused pill is its own focus target (focusable, children are not)", "setFocusable(true)" in pill and "setFocusable" not in pill.split("setFocusable(true)", 1)[1])
 check("Pill: only the padding and the name's window change; the pill's own size params (its height) are never touched",
       pill.count("getLayoutParams()") == 2 and "clip.getLayoutParams()" in pill and "name.getLayoutParams()" in pill)
-order = re.findall(r"Arrays\.asList\(([^)]*)\)", main.split("List<Pill> row", 1)[1].split("\n", 1)[0])
-check("MainActivity: the pills are the same seven in the same order (sources, network, settings, sleep, then tasks, screensaver, tilawah)",
-      order == ["inputs, wifiPill, settings, sleepPill"] and "row.add(tasks); row.add(saver);" in main and "row.add(tilawah)" in main, order)
-check("MainActivity: every pill is a Pill with a fixed 30 dp row (the row's height is reserved)",
-      "right.addView(p, llp(-2, dp(Pill.HEIGHT), dp(10), 0, 0, 0))" in main and "TextView tasks" not in main and "TextView saver" not in main)
-check("MainActivity: D-pad ends and order are unchanged (wireFocus and moveFocusSideways still walk the pills list)",
-      "p.setNextFocusLeftId(i == 0 ? p.getId() : pills.get(i - 1).getId())" in main and "int next = right ? index - 1 : index + 1;" in main)
-check("MainActivity: the sleep and network names are set on the pill, not drawn on the row", "sleepPill.setLabel(Digits.of(PillText.sleep(left)))" in main
-      and "wifiPill.setLabel(PillText.network(" in main)
+# Bayti TV: three buttons at the left of the top bar (sources, settings, «المزيد»), the rest are tiles of the control center
+check("MainActivity: the top bar's three buttons, in order: sources, settings, «المزيد»",
+      "for (Pill p : new Pill[]{inputs, settings, more})" in main and 'pill("المزيد", R.drawable.ic_more)' in main)
+check("MainActivity: every button is a Pill with a fixed row height (the row's height is reserved)",
+      "left.addView(p, llp(-2, dp(Pill.HEIGHT), dp(10), 0, 0, 0))" in main and "TextView tasks" not in main and "TextView saver" not in main)
+check("MainActivity: «المزيد» holds the network, the screensaver, «المهام», «تلاوة وأذان», the sleep timer and the favourites",
+      all(f'"{t}"' in main for t in ("الشبكة", "شاشة التوقف", "المهام", "تلاوة وأذان", "مؤقت النوم", "ترتيب المفضلة")) and "ControlCenter.show(" in main)
+check("MainActivity: the top bar is walked as one row across the tabs and the buttons; the other rows by moveFocusSideways",
+      "int ti = topItems.indexOf(getCurrentFocus());" in main and "int next = right ? index - 1 : index + 1;" in main)
+check("MainActivity: the sleep timer's minutes are on its control-center tile", "Digits.of(PillText.sleep(m))" in main
+      and "PillText.network(wired, wifi, ssid)" in main)
 
 if not shutil.which("javac"):
     print("SKIP pill text: no javac here")
