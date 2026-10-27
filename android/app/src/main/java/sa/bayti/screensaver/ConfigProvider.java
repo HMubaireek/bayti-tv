@@ -24,7 +24,8 @@ import java.util.List;
  *   delete  .../tasks/N                              -> 1 when task N is gone
  *
  * The home screen: query .../home gives tabs («أفلام»، «مسلسلات»، «يومي» shown, "movies,shows,today"), tmdb (the owner's TMDB key, "" when
- * none), carousel (its photo sources) and title_app (where «شاهد في …» opens a title: auto, nuvio, stremio or none); .../carousel gives json, the merged list of those sources (the owner's own are .../own).
+ * none), carousel (its photo sources), title_app (where «شاهد في …» opens a title: auto, nuvio, stremio or none), carousel_minutes
+ * (how often the carousel moves on, 0 = only with the remote) and board (what «يومي» shows, in order); .../carousel gives json, the merged list of those sources (the owner's own are .../own).
  *
  * «مصادر الصور»: query .../photos gives json (the merged list of the chosen photo sources, PhotoSources; null while only our Saudi set
  * is chosen, so the launcher reads photos/index.json as always) and minutes (how often the photo changes). It may fetch: off the main thread.
@@ -46,8 +47,8 @@ public class ConfigProvider extends ContentProvider {
             return o;
         }
         if (isPath(uri, "home")) {   // the home screen's tabs, its TMDB key and its carousel (never in the page's link)
-            MatrixCursor o = new MatrixCursor(new String[] {"tabs", "tmdb", "carousel", "title_app"});
-            o.addRow(new Object[] {Prefs.join(p.tabs(), ","), p.tmdbKey(), Prefs.join(p.carouselSources(), ","), p.titleApp()});
+            MatrixCursor o = new MatrixCursor(new String[] {"tabs", "tmdb", "carousel", "title_app", "carousel_minutes", "board"});
+            o.addRow(new Object[] {Prefs.join(p.tabs(), ","), p.tmdbKey(), Prefs.join(p.carouselSources(), ","), p.titleApp(), p.carouselMinutes(), Prefs.join(p.boardItems(), ",")});
             return o;
         }
         if (isPath(uri, "carousel")) {   // the carousel's photos from its sources (PhotoSources), merged; the owner's own are .../own

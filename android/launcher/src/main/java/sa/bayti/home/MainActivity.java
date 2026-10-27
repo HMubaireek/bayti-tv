@@ -217,6 +217,7 @@ public class MainActivity extends Activity {
     protected void onPause() {
         super.onPause();
         handler.removeCallbacks(rotateWallpaper);
+        handler.removeCallbacks(carouselNext);
         unregisterReceiver(tick);
         if (inputsPopup != null) inputsPopup.dismiss();
         if (controlCenter != null) controlCenter.dismiss();
@@ -312,8 +313,7 @@ public class MainActivity extends Activity {
         heroFocus.setId(View.generateViewId());
         heroFocus.setFocusable(false);   // focusable only while the carousel has photos (loadCarousel)
         heroFocus.setOnFocusChangeListener((v, has) -> {
-            if (has) { lastFocusedId = v.getId(); scroll.smoothScrollTo(0, 0); fadeGlow(1f); showCarousel(true); }
-            else showCarousel(false);
+            if (has) { lastFocusedId = v.getId(); scroll.smoothScrollTo(0, 0); fadeGlow(1f); }
         });
         heroFocus.setOnKeyListener((v, code, e) -> {
             if (e.getAction() != KeyEvent.ACTION_DOWN) return false;
@@ -356,17 +356,20 @@ public class MainActivity extends Activity {
         dockRow.setGravity(Gravity.CENTER_VERTICAL);
         dockRow.setClipChildren(false);
         dockRow.setClipToPadding(false);
-        dockRow.setPadding(dp(14), dp(14), dp(14), dp(14));
+        dockRow.setPadding(dp(16), dp(16), dp(16), dp(16));   // the same all round: the names are inside the cards
         GradientDrawable band = new GradientDrawable();
         band.setCornerRadius(dp(22));
         band.setColor(0x1AFFFFFF);
         band.setStroke(dp(1), 0x14FFFFFF);
         dockRow.setBackground(band);
-        bottom.addView(dockRow, llp(-2, -2, 0, dp(18), 0, 0));   // as wide as its apps, at the right: compact
+        bottom.addView(dockRow, llp(-1, -2, 0, dp(18), 0, 0));   // the whole width; its cards share it
 
-        appsLabel = text(13, "sans-serif-medium", GOLD);
+        // the app drawer's header: its name and how many, aligned with the grid's right edge
+        appsLabel = text(22, "medium", 0xFFF3EBD9);
         appsLabel.setText("كل التطبيقات");
-        content.addView(appsLabel, llp(-2, -2, dp(68), dp(18), 0, dp(20)));
+        appsLabel.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
+        appsLabel.setShadowLayer(dp(8), 0, 0, 0x99000000);
+        content.addView(appsLabel, llp(-1, -2, dp(68), dp(26), dp(68), dp(24)));
 
         grid = new LinearLayout(this);
         grid.setOrientation(LinearLayout.VERTICAL);
@@ -385,6 +388,7 @@ public class MainActivity extends Activity {
                 gridShade.animate().alpha(home ? 0f : 1f).setDuration(240).start();
                 glow.animate().alpha(home ? 1f : 0f).setDuration(240).start();
                 if (home) scroll.scrollTo(0, 0);
+                updateCarousel();
             }
             @Override public void downFromTabs() { View d = homeDown(); if (d != null) d.requestFocus(); }
             @Override public String fragment() { return ConfigSnapshot.read(MainActivity.this).fragment; }
@@ -605,14 +609,11 @@ public class MainActivity extends Activity {
         dockCards.clear();
         gridCards.clear();
 
-        // compact: each favourite a fixed 16:9 card (smaller when many), the band as wide as they are
-        int n = Math.max(1, dock.size());
-        int room = getResources().getDisplayMetrics().widthPixels - dp(96) - dp(28) - (n - 1) * dp(12);
-        int w = Math.min(dp(136), room / n);
+        // the favourites share the band's whole width, 16:9 cards side by side
         for (int i = 0; i < dock.size(); i++) {
             View tile = tile(dock.get(i), true);
-            LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(w, -2);
-            if (i > 0) p.setMarginStart(dp(12));
+            LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(0, -2, 1f);
+            if (i > 0) p.setMarginStart(dp(14));
             dockRow.addView(tile, p);
         }
 
@@ -622,7 +623,7 @@ public class MainActivity extends Activity {
                 row = new LinearLayout(this);
                 row.setClipChildren(false);
                 row.setClipToPadding(false);
-                grid.addView(row, llp(-1, -2, 0, 0, 0, dp(26)));
+                grid.addView(row, llp(-1, -2, 0, 0, 0, dp(30)));
             }
             View tile = tile(rest.get(i), false);
             LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(0, -2, 1f);
@@ -636,6 +637,10 @@ public class MainActivity extends Activity {
             row.addView(new View(this), p);
         }
         appsLabel.setVisibility(rest.isEmpty() ? View.GONE : View.VISIBLE);
+        android.text.SpannableString head = new android.text.SpannableString("كل التطبيقات  " + arabicDigits(String.valueOf(rest.size())));
+        head.setSpan(new android.text.style.ForegroundColorSpan(GOLD), "كل التطبيقات  ".length(), head.length(), 0);
+        head.setSpan(new android.text.style.RelativeSizeSpan(0.7f), "كل التطبيقات  ".length(), head.length(), 0);
+        appsLabel.setText(head);
         wireFocus();
 
         if (!dock.isEmpty()) setGlow(dock.get(0).color);
@@ -662,8 +667,17 @@ public class MainActivity extends Activity {
                 o.setRoundRect(0, 0, v.getWidth(), v.getHeight(), dp(inDock ? 12 : 14));
             }
         });
-        GradientDrawable bg = new GradientDrawable();
-        bg.setColor(app.isBanner ? 0xFF1C1C1E : darken(app.color, 0.45f));
+        // a banner fills its card; an icon sits on glass with a soft light of its own colour from the top (not a block of colour)
+        GradientDrawable bg;
+        if (app.isBanner || inDock) {
+            bg = new GradientDrawable();
+            bg.setColor(app.isBanner ? 0xFF1C1C1E : darken(app.color, 0.45f));
+        } else {
+            bg = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
+                    new int[]{withAlpha(darken(app.color, 0.8f), 0.55f), 0xD9161A18, 0xF0101211});
+            bg.setStroke(dp(1), 0x26FFFFFF);
+        }
+        bg.setCornerRadius(dp(inDock ? 12 : 14));
         card.setBackground(bg);
 
         ImageView img = new ImageView(this);
@@ -674,7 +688,8 @@ public class MainActivity extends Activity {
         } else {
             img.setScaleType(ImageView.ScaleType.FIT_CENTER);
             card.addView(img, new FrameLayout.LayoutParams(-1, -1));
-            img.setPadding(dp(22), dp(14), dp(22), dp(14));
+            if (inDock) img.setPadding(dp(22), dp(14), dp(22), dp(14));
+            else img.setPadding(dp(40), dp(22), dp(40), dp(22));   // a smaller icon, centred, room around it
         }
 
         // Focus ring and sheen, drawn above the art.
@@ -690,16 +705,22 @@ public class MainActivity extends Activity {
 
         box.addView(card, new LinearLayout.LayoutParams(-1, -2));
 
-        // the name under the card: on a favourite only while it has the focus, in the app grid always (brighter with the focus)
-        TextView label = text(inDock ? 12 : 12.5f, "sans-serif-medium", Color.WHITE);
+        // the name: on a favourite inside the card's foot, on a soft shade, only while it has the focus (the band's padding stays
+        // even); in the app grid under the card, always (brighter with the focus)
+        TextView label = text(inDock ? 12 : 13, "sans-serif-medium", Color.WHITE);
         label.setText(app.label);
         label.setSingleLine(true);
         label.setEllipsize(android.text.TextUtils.TruncateAt.END);
         label.setGravity(Gravity.CENTER);
         label.setShadowLayer(dp(6), 0, 0, 0xB3000000);
-        label.setAlpha(inDock ? 0f : .62f);
-        box.addView(label, llp(-1, -2, 0, dp(inDock ? 8 : 10), 0, 0));
-        if (inDock) box.setClipChildren(false);
+        label.setAlpha(inDock ? 0f : .7f);
+        if (inDock) {
+            label.setPadding(dp(8), dp(14), dp(8), dp(6));
+            label.setBackground(new GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, new int[]{0xCC000000, 0x00000000}));
+            card.addView(label, new FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM));
+        } else {
+            box.addView(label, llp(-1, -2, 0, dp(12), 0, 0));
+        }
         if (Build.VERSION.SDK_INT >= 28) {   // the focused card's shadow takes the app's own colour
             card.setOutlineSpotShadowColor(app.color);
             card.setOutlineAmbientShadowColor(app.color);
@@ -715,7 +736,7 @@ public class MainActivity extends Activity {
                     .setInterpolator(has ? new OvershootInterpolator(1.8f) : new DecelerateInterpolator())
                     .setDuration(has ? 320 : 200).start();
             shine.animate().alpha(has ? 1f : 0f).setDuration(160).start();
-            label.animate().alpha(has ? 1f : (inDock ? 0f : .62f)).translationY(has ? dp(inDock ? 6 : 4) : 0).setDuration(200).start();
+            label.animate().alpha(has ? 1f : (inDock ? 0f : .7f)).translationY(has || inDock ? 0 : 0).setDuration(200).start();
             if (!has) return;
             lastFocusedId = v.getId();
             if (inDock) {
@@ -1136,6 +1157,7 @@ public class MainActivity extends Activity {
         inGrid = grid;
         // the app drawer: the top bar steps out of the way, and on Android 12 the photo behind turns to frosted glass
         if (topBar != null) topBar.animate().alpha(grid ? 0f : 1f).setDuration(260).start();
+        updateCarousel();
         if (Build.VERSION.SDK_INT >= 31) {
             android.graphics.RenderEffect blur = grid ? android.graphics.RenderEffect.createBlurEffect(dp(26), dp(26), android.graphics.Shader.TileMode.CLAMP) : null;
             wallBack.setRenderEffect(blur);
@@ -1413,19 +1435,36 @@ public class MainActivity extends Activity {
                 buildDots();
                 wireFocus();
                 if (had && !on && !dockCards.isEmpty()) dockCards.get(0).requestFocus();
-                else if (had && on) showCarousel(true);
+                updateCarousel();
             });
         }, "carousel").start();
     }
 
     private int carouselTurn;
 
+    /** The carousel has the screen on «الرئيسية» (the top bar, its stop, the favourites) whenever it has photos; the app drawer and
+     *  the other tabs have the rotation's photo. */
+    private void updateCarousel() {
+        boolean want = carousel != null && !carousel.items.isEmpty() && tabs != null && HomeTabs.HOME_TAB.equals(tabs.current()) && !inGrid;
+        showCarousel(want);
+    }
+
+    /** it moves on by itself every «تبديل صورة العرض المتحرك كل» minutes while it is shown (and after a press, a whole interval later) */
+    private final Runnable carouselNext = () -> { if (carouselShown) stepCarousel(1); };
+
+    private void scheduleCarousel() {
+        handler.removeCallbacks(carouselNext);
+        if (carouselShown && carousel != null && carousel.minutes > 0 && carousel.items.size() > 1)
+            handler.postDelayed(carouselNext, carousel.minutes * 60_000L);
+    }
+
     /** The carousel takes the screen while its stop has the focus; when the focus leaves, the rotation's photo comes back. */
     private void showCarousel(boolean on) {
         boolean show = on && carousel != null && !carousel.items.isEmpty();
         dots.setVisibility(show ? View.VISIBLE : View.GONE);
-        if (show == carouselShown) { if (show) loadCarouselImage(); return; }
+        if (show == carouselShown) { scheduleCarousel(); return; }
         carouselShown = show;
+        scheduleCarousel();
         if (show) {
             handler.removeCallbacks(rotateWallpaper);
             loadCarouselImage();
@@ -1446,6 +1485,7 @@ public class MainActivity extends Activity {
         carouselIdx = ((carouselIdx + by) % n + n) % n;
         buildDots();
         loadCarouselImage();
+        scheduleCarousel();
     }
 
     private void loadCarouselImage() {

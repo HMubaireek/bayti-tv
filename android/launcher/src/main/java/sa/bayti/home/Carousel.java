@@ -28,6 +28,8 @@ final class Carousel {
 
     /** an address of a free source, or "own:N" for the owner's photo N */
     final List<String> items = new ArrayList<>();
+    /** how often it moves on by itself, in minutes; 0 = only with the remote */
+    int minutes = 1;
 
     private Carousel() {}
 
@@ -36,7 +38,11 @@ final class Carousel {
         Carousel out = new Carousel();
         String sources = "";
         try (Cursor cur = c.getContentResolver().query(BASE.buildUpon().appendPath("home").build(), null, null, null, null)) {
-            if (cur != null && cur.getColumnIndex("carousel") == 2 && cur.moveToFirst()) sources = cur.getString(2) == null ? "" : cur.getString(2);
+            if (cur != null && cur.getColumnIndex("carousel") == 2 && cur.moveToFirst()) {
+                sources = cur.getString(2) == null ? "" : cur.getString(2);
+                int m = cur.getColumnIndex("carousel_minutes");
+                if (m >= 0 && cur.getString(m) != null && cur.getString(m).matches("[0-9]{1,2}")) out.minutes = Integer.parseInt(cur.getString(m));
+            }
         } catch (RuntimeException ignored) { return out; }
         if (sources.isEmpty()) return out;
         try (Cursor cur = c.getContentResolver().query(BASE.buildUpon().appendPath("carousel").build(), null, null, null, null)) {

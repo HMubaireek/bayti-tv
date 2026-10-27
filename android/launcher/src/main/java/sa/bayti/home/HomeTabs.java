@@ -57,7 +57,7 @@ final class HomeTabs {
     private final List<String> keys = new ArrayList<>();
     private final FrameLayout webBox;
     private WebView web;
-    private String current = HOME_TAB, loaded, tmdb = "", shown = "";
+    private String current = HOME_TAB, loaded, tmdb = "", shown = "", board = "";
 
     HomeTabs(Activity a, Host host, Typeface bold, Typeface regular, FrameLayout webBox) {
         this.a = a;
@@ -94,6 +94,8 @@ final class HomeTabs {
                 key = c.getString(1) == null ? "" : c.getString(1);
                 int t = c.getColumnIndex("title_app");
                 if (t >= 0 && c.getString(t) != null) app = c.getString(t);
+                int b = c.getColumnIndex("board");
+                board = b >= 0 && c.getString(b) != null && c.getString(b).matches("[a-z,]*") ? c.getString(b) : "";
             }
         } catch (RuntimeException ignored) {
             // an older screensaver app: every tab, no key
@@ -187,7 +189,13 @@ final class HomeTabs {
         bg.setColor(Color.TRANSPARENT);
         t.setBackground(bg);
         t.setOnClickListener(v -> { select(key); if (!HOME_TAB.equals(key)) focusPage(); else host.downFromTabs(); });
-        t.setOnFocusChangeListener((v, has) -> paint());
+        // the tab under the focus is the one shown, a moment after the focus stops on it (passing over a tab does not load its page)
+        final Runnable show = () -> { if (t.hasFocus() && !key.equals(current)) select(key); };
+        t.setOnFocusChangeListener((v, has) -> {
+            paint();
+            v.removeCallbacks(show);
+            if (has) v.postDelayed(show, 350);
+        });
         return t;
     }
 
@@ -214,13 +222,15 @@ final class HomeTabs {
             return;
         }
         ensureWeb();
-        String want = key + "|" + tmdb.length() + "|" + host.digits() + "|" + ("today".equals(key) ? host.fragment() : "");
+        String want = key + "|" + tmdb.length() + "|" + host.digits() + "|" + ("today".equals(key) ? host.fragment() + board : "");
         if (!want.equals(loaded)) {
             loaded = want;
             web.setBackgroundColor("today".equals(key) ? Color.TRANSPARENT : 0xFF0B0B0C);
             web.loadUrl("today".equals(key)
                 ? "file:///android_asset/web/tv.html#" + (host.fragment() == null ? "" : host.fragment()) + "&board=1"
-                : "file:///android_asset/web/tabs.html#kind=" + ("shows".equals(key) ? "tv" : "movie") + "&digits=" + host.digits());
+                    + (board.isEmpty() ? "" : "&boardcards=" + board)
+                // a query of its own per tab: a link that differs only after # does not load the page again (both tabs showed films)
+                : "file:///android_asset/web/tabs.html?" + key + "#kind=" + ("shows".equals(key) ? "tv" : "movie") + "&digits=" + host.digits());
         }
         web.onResume();
         webBox.setVisibility(View.VISIBLE);

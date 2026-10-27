@@ -234,6 +234,21 @@ public class SaverReceiver extends BroadcastReceiver {
         }
         String tmdb = i.getStringExtra("tmdb");
         if (tmdb != null && !"clear".equals(tmdb) && !Prefs.tmdbKeyOk(tmdb)) return "error: tmdb is a TMDB API key or read token, or clear";
+        String carouselMin = i.getStringExtra("carouselmin");
+        if (carouselMin != null && !Arrays.asList(Prefs.CAROUSEL_MINUTES).contains(carouselMin))
+            return "error: carouselmin is one of " + Prefs.join(Arrays.asList(Prefs.CAROUSEL_MINUTES), " ") + " (0 = only with the remote)";
+        String board = i.getStringExtra("board");
+        List<String> boardList = null;
+        if (board != null) {
+            boardList = new ArrayList<>();
+            for (String part : "all".equals(board.trim()) ? new String[0] : board.split(",")) {
+                String k = part.trim();
+                if (k.isEmpty()) continue;
+                if (!isChoice(Prefs.BOARD_ITEMS, k)) return "error: board is a comma list of " + choices(Prefs.BOARD_ITEMS) + ", or all";
+                boardList.add(k);
+            }
+            if (boardList.isEmpty()) for (String[] b : Prefs.BOARD_ITEMS) boardList.add(b[0]);   // "all", or nothing named
+        }
         String titleApp = i.getStringExtra("titleapp");
         if (titleApp != null && !isChoice(Prefs.TITLE_APPS, titleApp)) return "error: titleapp is one of " + choices(Prefs.TITLE_APPS);
         String carousel = i.getStringExtra("carousel");
@@ -347,6 +362,8 @@ public class SaverReceiver extends BroadcastReceiver {
         if (tmdb != null) p.setTmdbKey("clear".equals(tmdb) ? "" : tmdb);
         if (carouselList != null) p.setCarouselSources(carouselList);
         if (titleApp != null) p.setTitleApp(titleApp);
+        if (carouselMin != null) p.setCarouselMinutes(carouselMin);
+        if (boardList != null) p.setBoardItems(boardList);
         if (nextPrayer != null) p.setNextPrayer(nextPrayer);
         if (occasion != null) p.setOccasion("on".equals(occasion));
         if (photoSrc != null) p.setPhotoSources(java.util.Arrays.asList(photoSrc.split(",")));
@@ -463,6 +480,8 @@ public class SaverReceiver extends BroadcastReceiver {
             + "\ntmdb: " + (p.tmdbKey().isEmpty() ? "none" : "set")   // the key itself is never printed
             + "\ncarousel: " + (p.carouselSources().isEmpty() ? "off" : Prefs.join(p.carouselSources(), ","))
             + "\ntitleapp: " + p.titleApp()
+            + "\ncarouselmin: " + p.carouselMinutes()
+            + "\nboard: " + Prefs.join(p.boardItems(), ",")
             + "\nnextprayer: " + p.nextPrayer()
             + "\noccasion: " + (p.occasion() ? "on" : "off")
             + "\nteams: " + Prefs.join(p.teams(), ", ")

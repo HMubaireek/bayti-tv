@@ -58,6 +58,8 @@ something about the screensaver, the home screen or the TV, find it in the table
 | fewer tabs on the home screen | التبويبات | `optimize/saver.sh tabs <movies,shows,today, or none>` («الرئيسية» always stays; alone, there is no tab row) |
 | movies and series (the أفلام / مسلسلات tabs) | مفتاح TMDB | they give their own key: `optimize/saver.sh tmdb <KEY>` (`clear` removes it); never print it, never put it in a report or the repo |
 | «شاهد في …» to open a title in their app | فتح العناوين في | `optimize/saver.sh titleapp <auto, nuvio, stremio, none>` (it opens the title's own page: Nuvio by its IMDb or TMDB id, Stremio by its IMDb id) |
+| the carousel to move on by itself more or less often | تبديل صورة العرض المتحرك كل | `optimize/saver.sh carouselmin <0, 1, 2, 3, 5, 10, 15, 30>` (minutes; 0 = only with the remote) |
+| fewer things on «يومي» | محتوى «يومي» | `optimize/saver.sh board <nextprayer, occasion, prayers, today, matches, verse, wisdom, hourly, forecast, year, stocks, tasks, shows, comma-separated, or all>` |
 | the home screen's carousel of photos | العرض المتحرك | `optimize/saver.sh carousel <photo sources and own, comma-separated, or none>` (none = off) |
 | prayer times by another calculation (Shia, Gulf, Egypt…) | طريقة حساب المواقيت | `optimize/saver.sh method <umm_alqura, jafari, tehran, gulf, kuwait, qatar, dubai, mwl, egypt, karachi, isna>` (`umm_alqura` is the default; `jafari` = الشيعة الاثنا عشرية, Maghrib when the redness has gone and Isha at its own angle). The screensaver, the home screen and the adhan all follow it; «تعديل وقت الصلاة» still moves each prayer by minutes on top |
 | the next occasion, Ramadan, Eid | المناسبة القادمة | always shown in the middle at the bottom; nothing to set |

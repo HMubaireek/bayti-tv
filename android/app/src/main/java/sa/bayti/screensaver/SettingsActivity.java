@@ -191,6 +191,11 @@ public class SettingsActivity extends Activity {
         row("فتح العناوين في", Prefs.titleAppLabel(prefs.titleApp()), R.drawable.ic_play, new Runnable() { public void run() {
             pickChoice("فتح العناوين في (زر «شاهد في …» في الأفلام والمسلسلات)", Prefs.TITLE_APPS, prefs.titleApp(), v -> prefs.setTitleApp(v)); } });
         row("العرض المتحرك", carouselLabel(), R.drawable.ic_eye, new Runnable() { public void run() { pickCarousel(); } });
+        if (!prefs.carouselSources().isEmpty())
+            row("تبديل صورة العرض المتحرك كل", "0".equals(prefs.carouselMinutes()) ? "يدويًا فقط (يمين ويسار)" : minutesLabel(Integer.parseInt(prefs.carouselMinutes())),
+                R.drawable.ic_sync, new Runnable() { public void run() { pickCarouselMinutes(); } });
+        if (prefs.tabs().contains("today"))
+            row("محتوى «يومي»", boardLabel(), R.drawable.ic_eye, new Runnable() { public void run() { pickBoard(); } });
         row("التحية والطقس", prefs.greeting() ? "تعمل" : "متوقفة", R.drawable.ic_eye,
             new Runnable() { public void run() { prefs.setGreeting(!prefs.greeting()); render(); } });
         row("ترتيب التطبيقات المفضلة", "قائمة ترتّب فيها المفضلة بالأسهم", R.drawable.ic_star,
@@ -828,6 +833,43 @@ public class SettingsActivity extends Activity {
             .setNeutralButton("حذف المفتاح", (d, w) -> { prefs.setTmdbKey(""); render(); })
             .setNegativeButton("إلغاء", null).show();
         in.requestFocus();
+    }
+
+    private void pickCarouselMinutes() {
+        String[] labels = new String[Prefs.CAROUSEL_MINUTES.length];
+        int sel = 0;
+        for (int i = 0; i < labels.length; i++) {
+            int m = Integer.parseInt(Prefs.CAROUSEL_MINUTES[i]);
+            labels[i] = m == 0 ? "يدويًا فقط (يمين ويسار)" : minutesLabel(m);
+            if (Prefs.CAROUSEL_MINUTES[i].equals(prefs.carouselMinutes())) sel = i;
+        }
+        new Dlg(this).setTitle("تبديل صورة العرض المتحرك كل")
+            .setSingleChoiceItems(labels, sel, (d, i) -> { prefs.setCarouselMinutes(Prefs.CAROUSEL_MINUTES[i]); d.dismiss(); render(); })
+            .show();
+    }
+
+    private String boardLabel() {
+        int n = prefs.boardItems().size();
+        return n == Prefs.BOARD_ITEMS.length ? "كل شيء" : arabicNum(n) + " من " + arabicNum(Prefs.BOARD_ITEMS.length);
+    }
+
+    /** «يومي»: tick what the tab shows (none ticked = everything) */
+    private void pickBoard() {
+        final String[][] items = Prefs.BOARD_ITEMS;
+        List<String> cur = prefs.boardItems();
+        String[] labels = new String[items.length];
+        final boolean[] on = new boolean[items.length];
+        for (int i = 0; i < items.length; i++) { labels[i] = items[i][1]; on[i] = cur.contains(items[i][0]); }
+        new Dlg(this).setTitle("محتوى «يومي» (بدون اختيار = كل شيء)")
+            .setMultiChoiceItems(labels, on, (d, i, checked) -> on[i] = checked)
+            .setPositiveButton("حفظ", (d, w) -> {
+                List<String> v = new ArrayList<>();
+                for (int i = 0; i < items.length; i++) if (on[i]) v.add(items[i][0]);
+                if (v.isEmpty()) for (String[] b : items) v.add(b[0]);
+                prefs.setBoardItems(v);
+                render();
+            })
+            .setNegativeButton("إلغاء", null).show();
     }
 
     private String carouselLabel() {

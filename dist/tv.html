@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <!-- the build: UTC time (YYYYMMDDHHMMSS) of the newest commit of the page's sources, put in by src/build.py. The app loads the page with the newer stamp (its own
      copy or a downloaded one), never by file time, and does not keep a download whose stamp is older than its own (Updater, PageStamp). -->
-<meta name="urtv-build" content="20261026043417">
+<meta name="urtv-build" content="20261026172202">
 <title>شاشة بيتي</title>
 <style>
   @font-face{font-family:'Tajawal';font-weight:300;font-style:normal;font-display:block;src:url("https://raw.githubusercontent.com/HMubaireek/bayti-tv/master/assets/fonts/Tajawal-Light.woff2") format("woff2")}
@@ -55,8 +55,16 @@
   html.board .bottom .p-match{display:none}
   html.board .bottom .panel{background:rgba(12,18,14,.55);border:1px solid rgba(var(--gold-rgb),.22);border-radius:18px;
     padding:2.2vh 1.8vw;min-width:22vw}
-  html.board .mid,html.board .mid.n2,html.board .mid.n3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2vw;align-items:start}
+  /* the cards flow down columns like a masonry wall (no holes beside a short card), three on a wide screen, two, then one; a little
+     larger than on the home screen, to read from the sofa */
+  html.board .mid,html.board .mid.n2,html.board .mid.n3{display:block;column-count:3;column-gap:1.8vw}
+  @media (max-width:860px){html.board .mid,html.board .mid.n2,html.board .mid.n3{column-count:2}}   /* the TV lays pages out 960 wide */
+  @media (max-width:540px){html.board .mid,html.board .mid.n2,html.board .mid.n3{column-count:1}}
+  html.board .mid .week{break-inside:avoid;display:block;width:100%;margin:0 0 1.8vw;--z:1.12;background-color:rgba(6,14,10,.78)}
   html.board .mid .week.w3{grid-column:auto}
+  html.board .bottom{flex-wrap:wrap}
+  html.board .bottom .panel{flex:1 1 0;min-width:18vw}
+  html.board .bottom .panel .big{font-size:clamp(20px,2.1vw,44px)}
   html.widget .week.boxes{padding:max(1.7vh,10px) max(1.4vw,14px)}   /* the prayer boxes keep a clear, even distance from the card's edge */
   html,body{
     height:100%;overflow:hidden;background:#040E09;color:var(--sand);
@@ -487,10 +495,14 @@
   .mk.px .px[data-u]::after{content:' ' attr(data-u);font-size:.7em;color:#A79C85}
   /* with prices, one market a line, in three aligned columns: the name, the price, the day's change (two columns of pairs did not
      line up) */
-  .mk.px{display:grid;grid-template-columns:repeat(3,max-content);width:max-content;gap:.55vh .8em;margin-inline-start:auto;
+  .mk.px{display:grid;grid-template-columns:repeat(3,max-content);width:max-content;gap:.55vh .9em;margin-inline-start:auto;
     align-items:baseline}
-  .mk.px .m{display:contents}
-  .mk.px .delta{justify-self:start}
+  /* each market its own row of the same three columns (subgrid): a price not in yet leaves its cell empty instead of letting the
+     next market's name slide into it */
+  .mk.px .m{display:grid;grid-column:1/-1;grid-template-columns:subgrid;align-items:baseline}
+  .mk.px .m > :first-child{grid-column:1}
+  .mk.px .px{grid-column:2;justify-self:end;font-variant-numeric:tabular-nums}
+  .mk.px .delta{grid-column:3;justify-self:end;font-variant-numeric:tabular-nums;min-width:3.6em;text-align:left}
   .mkup{margin-top:.6vh;text-align:left;font-size:clamp(10px,.82vw,16px);font-weight:300;color:var(--dim);white-space:nowrap}
   .p-prayer.now .big{color:var(--gold-hi);text-shadow:0 0 40px rgba(var(--gold-rgb),.45)}
   .p-prayer.now .label{color:#F1CF8A}
@@ -753,7 +765,11 @@ const CONFIG = {
 const BOARD_CARDS = ['prayers', 'today', 'matches', 'verse', 'wisdom', 'hourly', 'forecast', 'year', 'stocks', 'tasks', 'shows'];
 // The cards on this page: the screensaver's one (#panel=); the launcher's up to three (#home_panel=a,b,c, none or empty = no card;
 // an older launcher sends the one card as #panel=); every one on the board. Each kind once, in order.
-CONFIG.cards = CONFIG.board ? BOARD_CARDS.slice() : (CONFIG.widget && _Q.has('home_panel') ? _list('home_panel') : [CONFIG.panel])
+// «محتوى «يومي»» (#boardcards=, the launcher's setting): only those, in that order; nextprayer and occasion are the two at the top
+const BOARD_PICK = _Q.has('boardcards') ? _list('boardcards') : null;
+CONFIG.boardTop = {nextprayer: !BOARD_PICK || BOARD_PICK.includes('nextprayer'), occasion: !BOARD_PICK || BOARD_PICK.includes('occasion')};
+CONFIG.cards = CONFIG.board ? (BOARD_PICK ? BOARD_PICK.filter(k => BOARD_CARDS.includes(k)) : BOARD_CARDS.slice())
+  : (CONFIG.widget && _Q.has('home_panel') ? _list('home_panel') : [CONFIG.panel])
   .filter((k, i, a) => CARD_KINDS.includes(k) && a.indexOf(k) === i).slice(0, 3);
 CONFIG.panel = CONFIG.cards[0] || 'none';   // the first one, for what only needs to know "the card"
 // does a card on this page need that kind's data? The smart card reads what the matches, the adhkar, the prayers and the hours load;
@@ -3241,7 +3257,7 @@ function boot(){
   if(wxCity) wxCity.textContent = CONFIG.city;
   const cs = document.getElementById('clock-sub');
   if(cs) cs.textContent = 'بتوقيت ' + CONFIG.city;
-  document.title = 'شاشة تلفزيونك';
+  document.title = 'شاشة بيتي';
   applyBackground(true);
   loadPhotoIndex().then(() => applyBackground(true));
   setInterval(() => applyBackground(false), 60*1000);
@@ -3310,6 +3326,8 @@ function bootWidget(){
 // the focus back to the launcher's tabs, through its Bayti bridge), and the clock of the prayer and the occasion ticks every minute
 function bootBoard(){
   document.documentElement.classList.add('board');
+  if(!CONFIG.boardTop.nextprayer) document.documentElement.classList.add('np-off');
+  if(!CONFIG.boardTop.occasion) document.documentElement.classList.add('occ-off');
   tickOccasion();
   setInterval(() => { tickPrayer(); tickOccasion(); }, 30*1000);
   const step = () => Math.round(innerHeight * .45);

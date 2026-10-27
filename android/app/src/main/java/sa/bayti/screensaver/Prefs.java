@@ -398,6 +398,28 @@ final class Prefs {
     }
     void setCarouselSources(List<String> v) { sp.edit().putString("carousel", join(v, ",")).apply(); }
 
+    // how often the carousel moves on by itself, in minutes; 0 = only with the remote
+    static final String[] CAROUSEL_MINUTES = {"0", "1", "2", "3", "5", "10", "15", "30"};
+    String carouselMinutes() {
+        String v = sp.getString("carouselMinutes", "1");
+        return Arrays.asList(CAROUSEL_MINUTES).contains(v) ? v : "1";
+    }
+    void setCarouselMinutes(String v) { sp.edit().putString("carouselMinutes", v).apply(); }
+
+    // «يومي»: what the tab shows, in order (the next prayer and the next occasion at the top, then the cards); all by default
+    static final String[][] BOARD_ITEMS = {
+        {"nextprayer", "الصلاة القادمة"}, {"occasion", "المناسبة القادمة"}, {"prayers", "مواقيت اليوم"}, {"today", "يومك"},
+        {"matches", "المباريات"}, {"verse", "آية اليوم"}, {"wisdom", "حكمة"}, {"hourly", "طقس الساعات"}, {"forecast", "طقس الأيام"},
+        {"year", "السنة"}, {"stocks", "الأسهم"}, {"tasks", "المهام"}, {"shows", "جديد المسلسلات"},
+    };
+    List<String> boardItems() {
+        String saved = sp.getString("boardItems", null);
+        List<String> out = new ArrayList<>();
+        for (String[] b : BOARD_ITEMS) if (saved == null || Arrays.asList(saved.split(",")).contains(b[0])) out.add(b[0]);
+        return out;
+    }
+    void setBoardItems(List<String> v) { sp.edit().putString("boardItems", join(v, ",")).apply(); }
+
     // «المناسبة القادمة» in the bottom row (#occasion=0 hides it)
     boolean occasion() { return sp.getBoolean("occasion", true); }
     void setOccasion(boolean v) { sp.edit().putBoolean("occasion", v).apply(); }
