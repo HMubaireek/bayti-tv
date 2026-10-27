@@ -234,6 +234,8 @@ public class SaverReceiver extends BroadcastReceiver {
         }
         String tmdb = i.getStringExtra("tmdb");
         if (tmdb != null && !"clear".equals(tmdb) && !Prefs.tmdbKeyOk(tmdb)) return "error: tmdb is a TMDB API key or read token, or clear";
+        String homeShows = i.getStringExtra("homeshows");
+        if (homeShows != null && !isChoice(Prefs.HOME_SHOWS, homeShows)) return "error: homeshows is one of " + choices(Prefs.HOME_SHOWS);
         String hide = i.getStringExtra("hideprayers");
         List<String> hideList = null;
         if (hide != null) {
@@ -299,7 +301,8 @@ public class SaverReceiver extends BroadcastReceiver {
         String mkStyle = i.getStringExtra("mkstyle");
         if (mkStyle != null && !isChoice(Prefs.MK_STYLES, mkStyle))
             return "error: mkstyle is one of " + choices(Prefs.MK_STYLES);
-        List<String> markets = codes(i.getStringExtra("markets"), Prefs.MARKETS);
+        boolean marketsNone = "none".equals(i.getStringExtra("markets"));   // «الأسواق أعلى اليسار»: hidden
+        List<String> markets = marketsNone ? null : codes(i.getStringExtra("markets"), Prefs.MARKETS);
         if (markets != null) {
             if (markets.contains(null)) return "error: markets are " + names(Prefs.MARKETS);
             if (markets.isEmpty() || markets.size() > Prefs.MAX_MARKETS || new java.util.HashSet<>(markets).size() != markets.size())
@@ -380,6 +383,7 @@ public class SaverReceiver extends BroadcastReceiver {
         if (titleApp != null) p.setTitleApp(titleApp);
         if (carouselMin != null) p.setCarouselMinutes(carouselMin);
         if (hideList != null) p.setHiddenPrayers(hideList);
+        if (homeShows != null) p.setHomeShows(homeShows);
         for (int k = 0; k < greet.length; k++) if (greet[k] != null) p.setGreetPhrase(k, "default".equals(greet[k].trim()) ? "" : greet[k]);
         if (boardList != null) p.setBoardItems(boardList);
         if (nextPrayer != null) p.setNextPrayer(nextPrayer);
@@ -388,7 +392,8 @@ public class SaverReceiver extends BroadcastReceiver {
         if (national != null) p.setNational(national);
         if (cardStyle != null) p.setCardStyle(cardStyle);
         if (mkStyle != null) p.setMkStyle(mkStyle);
-        if (markets != null) p.setMarkets(markets);
+        if (markets != null) { p.setMarkets(markets); p.setMarketsOn(true); }
+        if (marketsNone) p.setMarketsOn(false);
         if (stocks != null) p.setStocks(stocks);
         if (slot != null) p.setSlot(slot);
         if (cd != null) {
@@ -499,6 +504,7 @@ public class SaverReceiver extends BroadcastReceiver {
             + "\ncarousel: " + (p.carouselSources().isEmpty() ? "off" : Prefs.join(p.carouselSources(), ","))
             + "\ntitleapp: " + p.titleApp()
             + "\ncarouselmin: " + p.carouselMinutes()
+            + "\nhomeshows: " + p.homeShows()
             + "\nhideprayers: " + (p.hiddenPrayers().isEmpty() ? "none" : Prefs.join(p.hiddenPrayers(), ","))
             + "\ngreet: " + p.greetShown(0) + " | " + p.greetShown(1) + " | " + p.greetShown(2) + " | " + p.greetShown(3)
             + "\nboard: " + Prefs.join(p.boardItems(), ",")
@@ -516,7 +522,7 @@ public class SaverReceiver extends BroadcastReceiver {
             + "\ndigits: " + p.digits()
             + "\nnational: " + p.national()
             + "\ncardstyle: " + p.cardStyle()
-            + "\nmarkets: " + Prefs.join(p.markets(), ",") + "\nmkstyle: " + p.mkStyle()
+            + "\nmarkets: " + (p.marketsOn() ? Prefs.join(p.markets(), ",") : "none") + "\nmkstyle: " + p.mkStyle()
             + "\nstocks: " + Prefs.join(p.stocks(), ",")
             + "\nslot: " + p.slot()
             + "\ncountdown: " + (p.countdownDate().isEmpty() ? "none" : p.countdownDate() + " " + p.countdownName())

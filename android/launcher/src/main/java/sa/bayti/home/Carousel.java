@@ -40,6 +40,8 @@ final class Carousel {
         try (Cursor cur = c.getContentResolver().query(BASE.buildUpon().appendPath("home").build(), null, null, null, null)) {
             if (cur != null && cur.getColumnIndex("carousel") == 2 && cur.moveToFirst()) {
                 sources = cur.getString(2) == null ? "" : cur.getString(2);
+                int show = cur.getColumnIndex("home_shows");   // «الرئيسية تعرض»: the cards or only the photo: no carousel
+                if (show >= 0 && cur.getString(show) != null && !"carousel".equals(cur.getString(show))) sources = "";
                 int m = cur.getColumnIndex("carousel_minutes");
                 if (m >= 0 && cur.getString(m) != null && cur.getString(m).matches("[0-9]{1,2}")) out.minutes = Integer.parseInt(cur.getString(m));
             }

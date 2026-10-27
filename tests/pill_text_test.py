@@ -30,8 +30,8 @@ check("MainActivity: the top bar's three buttons, in order: sources, settings, �
       "for (Pill p : new Pill[]{inputs, settings, more})" in main and 'pill("المزيد", R.drawable.ic_more)' in main)
 check("MainActivity: every button is a Pill with a fixed row height (the row's height is reserved)",
       "left.addView(p, llp(-2, dp(Pill.HEIGHT), dp(10), 0, 0, 0))" in main and "TextView tasks" not in main and "TextView saver" not in main)
-check("MainActivity: «المزيد» holds the network, the screensaver, «المهام», «تلاوة وأذان», the sleep timer and the favourites",
-      all(f'"{t}"' in main for t in ("الشبكة", "شاشة التوقف", "المهام", "تلاوة وأذان", "مؤقت النوم", "ترتيب المفضلة")) and "ControlCenter.show(" in main)
+check("MainActivity: «المزيد» holds the network, the settings shortcuts, «المهام», «تلاوة وأذان», the sleep timer and the favourites",
+      all(f'"{t}"' in main for t in ("الشبكة", "إعدادات الرئيسية", "إعدادات شاشة التوقف", "كل الإعدادات", "المهام", "تلاوة وأذان", "مؤقت النوم", "ترتيب المفضلة")) and "ControlCenter.show(" in main)
 check("MainActivity: the top bar is walked as one row across the tabs and the buttons; the other rows by moveFocusSideways",
       "int ti = topItems.indexOf(getCurrentFocus());" in main and "int next = right ? index - 1 : index + 1;" in main)
 check("MainActivity: the sleep timer's minutes are on its control-center tile", "Digits.of(PillText.sleep(m))" in main

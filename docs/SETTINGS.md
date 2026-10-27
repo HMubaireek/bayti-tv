@@ -61,6 +61,9 @@ something about the screensaver, the home screen or the TV, find it in the table
 | the carousel to move on by itself more or less often | تبديل صورة العرض المتحرك كل | `optimize/saver.sh carouselmin <0, 1, 2, 3, 5, 10, 15, 30>` (minutes; 0 = only with the remote) |
 | fewer things on «يومي» | محتوى «يومي» | `optimize/saver.sh board <nextprayer, occasion, prayers, today, matches, verse, wisdom, hourly, forecast, year, stocks, tasks, shows, comma-separated, or all>` |
 | the home screen's carousel of photos | العرض المتحرك | `optimize/saver.sh carousel <photo sources and own, comma-separated, or none>` (none = off) |
+| the home tab to show the carousel, the cards, or only the photo | الرئيسية تعرض | `optimize/saver.sh homeshows <carousel, cards, none>` |
+| their own photos from a folder (up to 60, kept on the TV) | صوري | `optimize/photos.sh sync <the folder they named>` (the TV's photos become exactly the folder's; run again after a change) |
+| no markets at the top left of the screensaver | الأسواق | `optimize/saver.sh markets none` (any list shows them again) |
 | no Asr / no Isha (they pray them with the Dhuhr and the Maghrib) | إخفاء العصر والعشاء | `optimize/saver.sh hideprayers <asr,isha | asr | isha | none>` (not shown, no adhan, no bar before it) |
 | their own greeting on the home screen | التحية | `optimize/saver.sh greet <morning, day, evening, night> '<phrase>'` (`default`: the usual one; up to 40 characters, no apostrophes) |
 | prayer times by another calculation (Shia, Gulf, Egypt…) | طريقة حساب المواقيت | `optimize/saver.sh method <umm_alqura, jafari, tehran, gulf, kuwait, qatar, dubai, mwl, egypt, karachi, isna>` (`umm_alqura` is the default; `jafari` = الشيعة الاثنا عشرية, Maghrib when the redness has gone and Isha at its own angle). The screensaver, the home screen and the adhan all follow it; «تعديل وقت الصلاة» still moves each prayer by minutes on top |

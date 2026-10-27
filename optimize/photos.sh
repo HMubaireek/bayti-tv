@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# The owner's own photos for the screensaver and the home screen: 1 to 10, from their agent. No remote, no menus.
+# The owner's own photos for the screensaver and the home screen: 1 to 60, from their agent. No remote, no menus.
 #   optimize/photos.sh add FILE...       make each ready on this computer (upright, at the TV's screen size, at most 1920 px wide,
-#                                        JPEG 85, no location or camera data) and put it on the TV (up to 10 in all)
+#                                        JPEG 85, no location or camera data) and put it on the TV (up to 60 in all)
+#   optimize/photos.sh sync FOLDER       the TV's photos become that folder's (its .jpg/.jpeg/.png, by name, up to 60): the owner keeps
+#                                        the folder and runs this again after adding or removing photos
 #   optimize/photos.sh list              how many, the mode, each one's size
 #   optimize/photos.sh del N             remove photo N (N from 'list'); the ones after it move up
 #   optimize/photos.sh clear             remove them all: the TV is as before
@@ -13,7 +15,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 PY="${PY:-optimize/venv/bin/python}"
-MAX=10
+MAX=60
 STAGE=/data/local/tmp/urtv-own
 tv() { "$PY" -I optimize/tv.py "$@"; }
 send() {   # $1 extras; prints the receiver's answer (the "data" of am broadcast); exit 1 on "error:"
@@ -41,6 +43,15 @@ trap cleanup EXIT
 case "${1:-}" in
   list)  send "--es op list" ;;
   clear) send "--es op clear" ;;
+  sync)
+    dir="${2:?usage: optimize/photos.sh sync FOLDER}"
+    [ -d "$dir" ] || { echo "error: not a folder: $dir"; exit 1; }
+    mapfile -t files < <(find "$dir" -maxdepth 1 -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \) | LC_ALL=C sort | head -n "$MAX")
+    [ "${#files[@]}" -gt 0 ] || { echo "error: no photos (.jpg, .jpeg, .png) in $dir"; exit 1; }
+    total=$(find "$dir" -maxdepth 1 -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \) | wc -l)
+    [ "$total" -le "$MAX" ] || echo "   (the folder has $total photos: the first $MAX by name are used)"
+    send "--es op clear" > /dev/null
+    exec "$0" add "${files[@]}" ;;
   del)
     [[ "${2:-}" =~ ^[0-9]+$ ]] || { echo "usage: optimize/photos.sh del N   (N from 'list')"; exit 1; }
     send "--es op del --ei n $2" ;;

@@ -95,7 +95,9 @@ final class Prefs {
         boolean any = false;
         List<String> v = new ArrayList<>();
         for (int k = 0; k < GREET_PARTS.length; k++) { String s = greetPhrase(k); any |= !s.isEmpty(); v.add(s); }
-        return any ? "&greet=" + Uri.encode(join(v, "|")) : "";
+        // TextUtils.join keeps the empty ones (join() skips a separator while nothing is written yet: «||a|b» came out «a|b», and the
+        // evening's and the night's phrases showed in the morning and the day)
+        return any ? "&greet=" + Uri.encode(android.text.TextUtils.join("|", v)) : "";
     }
 
     // «إخفاء صلاتي العصر والعشاء»: for those who pray them with the Dhuhr and the Maghrib (the Shia practice). Hidden from the next prayer,
@@ -124,7 +126,7 @@ final class Prefs {
     static final String[][] NATIONAL = {{"auto", "تلقائي"}, {"off", "إيقاف"}};
 
     // look of the card beside the clock (sent to the page as #cardstyle=; current is the plain card it always had)
-    static final String[][] CARD_STYLES = {{"current", "الحالية"}, {"dark1", "داكنة"}, {"glass1", "زجاجية"},
+    static final String[][] CARD_STYLES = {{"current", "بسيطة"}, {"dark1", "داكنة"}, {"glass1", "زجاجية"},
         {"dark3", "داكنة بإطار"}, {"glass3", "زجاجية بإطار"}};
 
     // markets at the top left (sent to the page as #markets=, up to MAX_MARKETS, in this order of choice; tasi,spx,btc is what it always showed)
@@ -332,6 +334,9 @@ final class Prefs {
         return v.isEmpty() ? java.util.Arrays.asList(DEFAULT_MARKETS.split(",")) : v;
     }
     void setMarkets(List<String> v) { setList("markets", v); }
+    /** «الأسواق أعلى اليسار»: shown (as always) or hidden; the weather above them stays */
+    boolean marketsOn() { return sp.getBoolean("marketsOn", true); }
+    void setMarketsOn(boolean v) { sp.edit().putBoolean("marketsOn", v).apply(); }
 
     String mkStyle() { return sp.getString("mkStyle", "arrows"); }
     void setMkStyle(String v) { sp.edit().putString("mkStyle", v).apply(); }
@@ -431,6 +436,20 @@ final class Prefs {
         return out;
     }
     void setCarouselSources(List<String> v) { sp.edit().putString("carousel", join(v, ",")).apply(); }
+
+    // «الرئيسية تعرض»: the home tab shows the carousel, the cards under the top bar, or only the photo (one of them, never both)
+    static final String[][] HOME_SHOWS = {{"carousel", "العرض المتحرك"}, {"cards", "البطاقات"}, {"none", "الصورة فقط"}};
+    String homeShows() {
+        String v = sp.getString("homeShows", null);
+        if (v == null) return !carouselSources().isEmpty() ? "carousel" : !homePanels().isEmpty() ? "cards" : "carousel";
+        for (String[] h : HOME_SHOWS) if (h[0].equals(v)) return v;
+        return "carousel";
+    }
+    void setHomeShows(String v) { sp.edit().putString("homeShows", v).apply(); }
+    static String homeShowsLabel(String v) {
+        for (String[] h : HOME_SHOWS) if (h[0].equals(v)) return h[1];
+        return HOME_SHOWS[0][1];
+    }
 
     // how often the carousel moves on by itself, in minutes; 0 = only with the remote
     static final String[] CAROUSEL_MINUTES = {"0", "1", "2", "3", "5", "10", "15", "30"};
@@ -542,7 +561,7 @@ final class Prefs {
             + "&yearstrip=" + (yearStrip() ? "1" : "0")
             + PrayerAdj.fragment(prayerAdjOn(), prayerAdj())
             + "&national=" + national()
-            + "&markets=" + join(markets(), ",")
+            + "&markets=" + (marketsOn() ? join(markets(), ",") : "none")
             + "&mkstyle=" + mkStyle()
             + "&stocks=" + join(stocks(), ",")
             + "&slot=" + slot()

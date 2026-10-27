@@ -19,7 +19,7 @@ import java.io.OutputStream;
  * MAX_BYTES, at most MAX_SIDE a side and MAX_PIXELS in all (optimize/photos.sh sends 1920 px wide).
  */
 final class Own {
-    static final int MAX = 10;
+    static final int MAX = 60;   // Bayti TV: a folder of the family's photos (photos.sh sync), about 300 KB each on the TV
     static final long MAX_BYTES = 3L << 20;
     static final int MAX_SIDE = 3840, MAX_PIXELS = 3840 * 2160;
     static final String MIX = "mix", ONLY = "only";

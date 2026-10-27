@@ -242,9 +242,14 @@ public class MainActivity extends Activity {
         // Home pressed while already home: «الرئيسية», and the first dock app.
         if (inputsPopup != null) inputsPopup.dismiss();
         if (controlCenter != null) controlCenter.dismiss();
+        // Home on the home screen: back to the top at once (out of the app drawer: the top bar and the photo come back), «الرئيسية»
+        // shown and its tab with the focus; with no tab row, the first favourite
         tabs.select(HomeTabs.HOME_TAB);
-        if (!dockCards.isEmpty()) dockCards.get(0).requestFocus();
-        scroll.smoothScrollTo(0, 0);
+        scroll.scrollTo(0, 0);
+        fadeGlow(1f);
+        View tab = tabs.any() ? tabs.currentView() : null;
+        final View to = tab != null ? tab : dockCards.isEmpty() ? null : dockCards.get(0);
+        if (to != null) scroll.post(() -> { scroll.scrollTo(0, 0); to.requestFocus(); });
     }
 
     @Override
@@ -504,7 +509,10 @@ public class MainActivity extends Activity {
         tiles.add(new ControlCenter.Tile(R.drawable.ic_wifi, "الشبكة", () -> wifiState(),
                 v -> launch(new Intent(Settings.ACTION_WIFI_SETTINGS))));
         if (isInstalled(SAVER_PKG)) {
-            tiles.add(new ControlCenter.Tile(R.drawable.ic_screensaver, "شاشة التوقف", () -> "إعدادات بيتي", v -> openPackage(SAVER_PKG)));
+            // straight to their section of the settings (Back comes back here)
+            tiles.add(new ControlCenter.Tile(R.drawable.ic_home, "إعدادات الرئيسية", () -> "العرض المتحرك، التبويبات، التحية", v -> openSettings("home")));
+            tiles.add(new ControlCenter.Tile(R.drawable.ic_screensaver, "إعدادات شاشة التوقف", () -> "الشكل، الساعة، الأسواق", v -> openSettings("saver")));
+            tiles.add(new ControlCenter.Tile(R.drawable.ic_settings, "كل الإعدادات", () -> "الصلاة، الصور، المباريات…", v -> openPackage(SAVER_PKG)));
             tiles.add(new ControlCenter.Tile(R.drawable.ic_mic, "المهام", () -> "بالصوت أو بالأزرار",
                     v -> launch(new Intent(this, TasksActivity.class))));
         }
@@ -517,6 +525,13 @@ public class MainActivity extends Activity {
         }, v -> showSleep(anchor)));
         tiles.add(new ControlCenter.Tile(R.drawable.ic_home, "ترتيب المفضلة", () -> "بالأسهم", v -> launch(new Intent(this, DockActivity.class))));
         controlCenter = ControlCenter.show(this, tiles, font("medium"), font("regular"), () -> { controlCenter = null; if (!isFinishing()) anchor.requestFocus(); });
+    }
+
+    /** The screensaver app's settings on one section (home, saver…); Back there returns here */
+    private void openSettings(String page) {
+        Intent i = new Intent().setClassName(SAVER_PKG, SAVER_PKG + ".SettingsActivity").putExtra("page", page)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        if (!launch(i)) openPackage(SAVER_PKG);
     }
 
     /** «متصل: البيت» / «سلكي» / «غير متصل», for the control center's network tile */
@@ -625,13 +640,15 @@ public class MainActivity extends Activity {
             }
             View tile = tile(rest.get(i), false);
             LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(0, -2, 1f);
-            p.setMargins(i % cols == 0 ? 0 : dp(10), 0, i % cols == cols - 1 ? 0 : dp(10), 0);
+            // one gap before every tile but a row's first (by start, the rows read from the right): the gaps are all the same and the
+            // tiles, sharing what is left, all the same width
+            if (i % cols != 0) p.setMarginStart(dp(18));
             row.addView(tile, p);
         }
         // Pad the last row so tiles keep their width.
         if (row != null) for (int i = rest.size() % cols; i != 0 && i < cols; i++) {
             LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(0, 1, 1f);
-            p.setMargins(dp(10), 0, i == cols - 1 ? 0 : dp(10), 0);
+            p.setMarginStart(dp(18));
             row.addView(new View(this), p);
         }
         appsLabel.setVisibility(rest.isEmpty() ? View.GONE : View.VISIBLE);

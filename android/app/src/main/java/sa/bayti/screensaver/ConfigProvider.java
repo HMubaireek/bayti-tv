@@ -47,8 +47,8 @@ public class ConfigProvider extends ContentProvider {
             return o;
         }
         if (isPath(uri, "home")) {   // the home screen's tabs, its TMDB key and its carousel (never in the page's link)
-            MatrixCursor o = new MatrixCursor(new String[] {"tabs", "tmdb", "carousel", "title_app", "carousel_minutes", "board"});
-            o.addRow(new Object[] {Prefs.join(p.tabs(), ","), p.tmdbKey(), Prefs.join(p.carouselSources(), ","), p.titleApp(), p.carouselMinutes(), Prefs.join(p.boardItems(), ",")});
+            MatrixCursor o = new MatrixCursor(new String[] {"tabs", "tmdb", "carousel", "title_app", "carousel_minutes", "board", "home_shows"});
+            o.addRow(new Object[] {Prefs.join(p.tabs(), ","), p.tmdbKey(), Prefs.join(p.carouselSources(), ","), p.titleApp(), p.carouselMinutes(), Prefs.join(p.boardItems(), ","), p.homeShows()});
             return o;
         }
         if (isPath(uri, "carousel")) {   // the carousel's photos from its sources (PhotoSources), merged; the owner's own are .../own
@@ -74,9 +74,10 @@ public class ConfigProvider extends ContentProvider {
             return t;
         }
         // home_panel: the first card alone (what an older launcher reads); home_panels: all of them, "a,b,c" or "none"
-        List<String> cards = p.homePanels();
+        // «الرئيسية تعرض» other than the cards: an empty list, so the launcher makes no card WebView at all
+        List<String> cards = "cards".equals(p.homeShows()) ? p.homePanels() : new java.util.ArrayList<String>();
         MatrixCursor c = new MatrixCursor(new String[] {"fragment", "home_panel", "greeting", "home_panels", "adhan_bar"});
-        c.addRow(new Object[] {p.fragment(), cards.isEmpty() ? "none" : cards.get(0), p.greeting() ? "1" : "0", p.homePanel(), p.adhanBar() ? "1" : "0"});
+        c.addRow(new Object[] {p.fragment(), cards.isEmpty() ? "none" : cards.get(0), p.greeting() ? "1" : "0", cards.isEmpty() ? "none" : Prefs.join(cards, ","), p.adhanBar() ? "1" : "0"});
         return c;
     }
 

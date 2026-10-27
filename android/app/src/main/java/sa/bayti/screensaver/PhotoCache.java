@@ -42,7 +42,7 @@ final class PhotoCache {
             }
             if (url.startsWith(OWN)) {
                 String name = url.substring(OWN.length());
-                if (!name.matches("([1-9]|10)\\.jpg")) return null;
+                if (!name.matches("([1-9]|[1-5][0-9]|60)\\.jpg")) return null;   // 1 to Own.MAX (60)
                 File f = Own.file(c, Integer.parseInt(name.substring(0, name.indexOf('.'))));
                 return f.isFile() ? jpeg(new FileInputStream(f)) : null;
             }

@@ -30,7 +30,8 @@
 #                                                  clear removes it. Never printed back (show says set or none)
 #   optimize/saver.sh titleapp nuvio               where «شاهد في …» in أفلام and مسلسلات opens a title, at its own page: auto (default:
 #                                                  the first installed of Nuvio and Stremio), nuvio, stremio or none
-#   optimize/saver.sh hideprayers asr,isha         no Asr and no Isha (prayed with the Dhuhr and the Maghrib): not shown, no adhan, no bar
+#   optimize/saver.sh homeshows cards              the home tab shows the carousel (default), the cards under the top bar, or none (the photo)
+#   optimize/saver.sh hideprayers asr,isha        no Asr and no Isha (prayed with the Dhuhr and the Maghrib): not shown, no adhan, no bar
 #   optimize/saver.sh greet morning 'صباح النور'   the home screen's greeting for morning, day, evening or night (default: the usual one)
 #   optimize/saver.sh carouselmin 5               the carousel moves on by itself every N minutes: 1 (default) 2 3 5 10 15 30, 0 = remote only
 #   optimize/saver.sh board prayers,matches        what «يومي» shows, in order: nextprayer occasion prayers today matches verse wisdom hourly
@@ -48,7 +49,7 @@
 #   optimize/saver.sh digits latin                 numbers: hindi = ١٢٣ (default), latin = 123
 #   optimize/saver.sh method jafari                prayer-time calculation: umm_alqura (default) jafari tehran gulf kuwait qatar dubai
 #                                                  mwl egypt karachi isna; the screensaver and the launcher's adhan both follow it
-#   optimize/saver.sh markets tasi,gold,btc        top left, up to 4 in order: tasi aramco spx btc gold silver xrp (default tasi,spx,btc)
+#   optimize/saver.sh markets tasi,gold,btc        top left, up to 4 in order: tasi aramco spx btc gold silver xrp (default tasi,spx,btc); none hides them
 #   optimize/saver.sh mkstyle prices               markets: arrows (▲▼ only, default) or prices (price and day's change)
 #   optimize/saver.sh stocks 2222 1120 AAPL        watchlist of the stocks card (card stocks): up to 8 Tadawul codes (4 digits) or US tickers
 #   optimize/saver.sh tasks list                   «المهام» kept on the TV; N = the number list shows
@@ -174,6 +175,7 @@ case "${1:-}" in
   titleapp) set1 titleapp "${2:?usage: optimize/saver.sh titleapp auto|nuvio|stremio|none}" ;;
   carouselmin) set1 carouselmin "${2:?usage: optimize/saver.sh carouselmin 0|1|2|3|5|10|15|30}" ;;
   board)    set1 board "${2:?usage: optimize/saver.sh board prayers,matches,verse|all}" ;;
+  homeshows) set1 homeshows "${2:?usage: optimize/saver.sh homeshows carousel|cards|none}" ;;
   hideprayers) set1 hideprayers "${2:?usage: optimize/saver.sh hideprayers asr,isha|none}" ;;
   greet)
     case "${2:-}" in morning|day|evening|night) ;; *) echo "usage: optimize/saver.sh greet morning|day|evening|night PHRASE (default: back to the usual)"; exit 1 ;; esac
