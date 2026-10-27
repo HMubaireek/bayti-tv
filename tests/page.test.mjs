@@ -36,6 +36,9 @@ async function open(file, hash, { width = 1920, height = 1080, seed = true, net 
   const errors = [];
   p.on('pageerror', e => errors.push(e.message));
   if (now) await p.clock.setFixedTime(now);   // the page's Date is this moment; timers run as usual
+  // Bayti TV's screensaver is «هادئ» (#look=minimal) by default; these layout tests measure the classic layout (the big clock in
+  // the middle, the bottom row's columns, the year strip under the clock), so they ask for it unless a test names a look itself
+  if (!/(^|&)look=/.test(hash)) hash += '&look=classic';
   await p.goto(page(file) + '#' + hash + '&gap=0');   // no pause between the requests of one loader: the tests do not wait for it
   await p.waitForFunction(() => document.documentElement.classList.contains('ready'), null, { timeout: 4000 })
     .catch(() => errors.push('never revealed'));
@@ -3289,6 +3292,35 @@ for (const [style, w, h] of [['current', 1920, 1080], ['dark1', 1920, 1080], ['g
   const { p, ctx, errors } = await open('tv.html', 'teams=136013&panel=matches&widget=1', { width: 461, height: 250, init: null });
   await p.evaluate(NP_MOCK({ title: 'سورة الكهف', who: 'x' }) + ' try { nowPlayingTick(); } catch(e) {}');
   check('now playing card: not part of the launcher\'s home cards', !errors.length && await p.evaluate(() => { const n = document.getElementById('np'); return !n || n.hidden || getComputedStyle(n).display === 'none'; }), errors.join('; '));
+  await ctx.close();
+}
+
+// ---- Bayti TV: «هادئ» (#look=minimal, the default), hidden prayers, the «يومي» board
+for (const [width, height] of [[1920, 1080], [960, 540]]) {
+  const { p, ctx, errors } = await open('tv.html', 'panel=none&slot=none&look=minimal', { width, height });
+  const r = await p.evaluate(() => {
+    const c = document.querySelector('.clock').getBoundingClientRect(), b = getComputedStyle(document.querySelector('.bottom'));
+    return {min: document.documentElement.classList.contains('look-min'), right: innerWidth - c.right, h: c.height, H: innerHeight,
+      line: b.borderTopWidth, weight: getComputedStyle(document.querySelector('.clock')).fontWeight};
+  });
+  check(`look minimal ${width}x${height}: the clock small and light at the right, no line over the bottom row`,
+    !errors.length && r.min && r.right < width * .08 && r.h < r.H * .22 && r.line === '0px' && +r.weight <= 300, JSON.stringify(r) + errors.join('; '));
+  await ctx.close();
+}
+{
+  const { p, ctx, errors } = await open('tv.html', 'panel=prayers&hideprayers=asr,isha&look=minimal');
+  const r = await p.evaluate(() => { try { buildPrayers(computePrayers()); renderPanel(false, 'prayers'); } catch (e) { return {e: String(e)}; }
+    return {keys: PRAYERS.map(x => x.key), rows: [...document.querySelectorAll('.week li')].map(li => li.textContent)}; });
+  check('hide prayers: no Asr and no Isha, in the prayers counted down to and in the card',
+    !errors.length && JSON.stringify(r.keys) === '["Fajr","Dhuhr","Maghrib"]' && r.rows && !r.rows.some(t => /العصر|العشاء/.test(t)), JSON.stringify(r) + errors.join('; '));
+  await ctx.close();
+}
+{
+  const { p, ctx, errors } = await open('tv.html', 'board=1&boardcards=occasion,prayers,verse', { width: 960, height: 540 });
+  const r = await p.evaluate(() => ({cards: CONFIG.cards, cols: getComputedStyle(document.querySelector('.mid')).columnCount,
+    prayer: getComputedStyle(document.querySelector('.p-prayer')).display, occ: getComputedStyle(document.querySelector('.p-mid')).display}));
+  check('«يومي»: only the chosen cards, in columns at the TV\'s 960 px, the next prayer left out when it is not chosen',
+    !errors.length && JSON.stringify(r.cards) === '["prayers","verse"]' && r.cols === '3' && r.prayer === 'none' && r.occ !== 'none', JSON.stringify(r) + errors.join('; '));
   await ctx.close();
 }
 
