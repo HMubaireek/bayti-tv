@@ -413,10 +413,9 @@ public class MainActivity extends Activity {
         LinearLayout box = new LinearLayout(this);
         box.setOrientation(LinearLayout.VERTICAL);
         box.setGravity(Gravity.RIGHT);
-        // Gravity.RIGHT, not END: for Arabic text END is the left
-        greeting = text(17, "medium", GOLD);
+        // Gravity.RIGHT, not END: for Arabic text END is the left. The greeting itself sits at the top bar's right (buildHeader)
+        greeting = text(20, "medium", GOLD);
         greeting.setSingleLine(true);
-        box.addView(greeting, llp(-2, -2, 0, 0, dp(4), 0));
 
         LinearLayout clockRow = new LinearLayout(this);
         clockRow.setGravity(Gravity.TOP);
@@ -462,12 +461,11 @@ public class MainActivity extends Activity {
         FrameLayout header = new FrameLayout(this);
         header.setClipChildren(false);
 
-        // at the right: the app's name, quiet
-        TextView brand = text(20, "display", GOLD);
-        brand.setText("بيتي");
-        brand.setShadowLayer(dp(8), 0, 0, 0x80000000);
-        header.addView(brand, new FrameLayout.LayoutParams(-2, dp(Pill.HEIGHT), Gravity.RIGHT | Gravity.CENTER_VERTICAL));
-        brand.setGravity(Gravity.CENTER_VERTICAL);
+        // at the right: the greeting of the part of the day («صباح الخير»…, the owner's own phrases from «التحية»)
+        greeting.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
+        greeting.setMaxWidth(getResources().getDisplayMetrics().widthPixels / 2 - dp(48) - dp(200));   // clear of the centred tabs
+        greeting.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        header.addView(greeting, new FrameLayout.LayoutParams(-2, dp(Pill.HEIGHT), Gravity.RIGHT | Gravity.CENTER_VERTICAL));
 
         // in the middle: the tabs (none shown when only «الرئيسية» is left)
         header.addView(tabs.row(), new FrameLayout.LayoutParams(-2, dp(Pill.HEIGHT), Gravity.CENTER));

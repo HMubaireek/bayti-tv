@@ -20,10 +20,16 @@ final class Place {
     final int[] adj;
     /** «طريقة حساب المواقيت»: the screensaver's #method=; Umm al-Qura unless the settings say otherwise */
     final PrayerMath.Method method;
+    /** «إخفاء العصر والعشاء» (#hideprayers=asr,isha): not counted down to, no adhan, no bar; their times still divide the day */
+    final boolean hideAsr, hideIsha;
 
-    private Place(double lat, double lng, String tz, int[] adj, PrayerMath.Method method) {
+    private Place(double lat, double lng, String tz, int[] adj, PrayerMath.Method method, boolean hideAsr, boolean hideIsha) {
         this.lat = lat; this.lng = lng; this.tz = tz; this.adj = adj; this.method = method;
+        this.hideAsr = hideAsr; this.hideIsha = hideIsha;
     }
+
+    /** is prayer i (PrayerTimes.ASR, .ISHA…) one the owner does not want counted down to */
+    boolean hides(int i) { return (i == PrayerMath.ASR && hideAsr) || (i == PrayerMath.ISHA && hideIsha); }
 
     static Place get(Context c) {
         try (Cursor cur = c.getContentResolver().query(CONFIG, null, null, null, null)) {
@@ -46,13 +52,13 @@ final class Place {
     private static Place bundled(Context c) {
         return new Place(number(c.getString(R.string.latitude), 24.6877),
                 number(c.getString(R.string.longitude), 46.7219),
-                orDefault(c.getString(R.string.timezone), "Asia/Riyadh"), new int[PrayerAdjust.COUNT], PrayerMath.Method.UMM_ALQURA);
+                orDefault(c.getString(R.string.timezone), "Asia/Riyadh"), new int[PrayerAdjust.COUNT], PrayerMath.Method.UMM_ALQURA, false, false);
     }
 
     /** "city=..&lat=24.7&lon=46.7&tz=Asia%2FRiyadh&..." — the same fragment the page reads. */
     private static Place fromFragment(String fragment) {
         try {
-            String lat = null, lon = null, tz = null, method = null;
+            String lat = null, lon = null, tz = null, method = null, hide = "";
             for (String part : fragment.split("&")) {
                 int eq = part.indexOf('=');
                 if (eq < 0) continue;
@@ -61,10 +67,11 @@ final class Place {
                 else if ("lon".equals(key)) lon = value;
                 else if ("tz".equals(key)) tz = value;
                 else if ("method".equals(key)) method = value;
+                else if ("hideprayers".equals(key)) hide = "," + value + ",";
             }
             if (lat == null || lon == null) return null;
             return new Place(number(lat, 24.6877), number(lon, 46.7219), orDefault(tz, "Asia/Riyadh"), PrayerAdjust.fromFragment(fragment),
-                    PrayerMath.Method.of(method));
+                    PrayerMath.Method.of(method), hide.contains(",asr,"), hide.contains(",isha,"));
         } catch (Exception e) {
             return null;
         }

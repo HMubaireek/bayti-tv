@@ -234,6 +234,22 @@ public class SaverReceiver extends BroadcastReceiver {
         }
         String tmdb = i.getStringExtra("tmdb");
         if (tmdb != null && !"clear".equals(tmdb) && !Prefs.tmdbKeyOk(tmdb)) return "error: tmdb is a TMDB API key or read token, or clear";
+        String hide = i.getStringExtra("hideprayers");
+        List<String> hideList = null;
+        if (hide != null) {
+            hideList = new ArrayList<>();
+            for (String part : "none".equals(hide.trim()) ? new String[0] : hide.split(",")) {
+                String k = part.trim();
+                if (k.isEmpty()) continue;
+                if (!isChoice(Prefs.HIDE_PRAYERS, k)) return "error: hideprayers is asr, isha, asr,isha or none";
+                if (!hideList.contains(k)) hideList.add(k);
+            }
+        }
+        String[] greet = new String[Prefs.GREET_PARTS.length];
+        for (int k = 0; k < greet.length; k++) {
+            greet[k] = i.getStringExtra("greet_" + Prefs.GREET_PARTS[k][0]);
+            if (greet[k] != null && greet[k].trim().length() > Prefs.GREET_CHARS) return "error: a greeting is at most " + Prefs.GREET_CHARS + " characters";
+        }
         String carouselMin = i.getStringExtra("carouselmin");
         if (carouselMin != null && !Arrays.asList(Prefs.CAROUSEL_MINUTES).contains(carouselMin))
             return "error: carouselmin is one of " + Prefs.join(Arrays.asList(Prefs.CAROUSEL_MINUTES), " ") + " (0 = only with the remote)";
@@ -363,6 +379,8 @@ public class SaverReceiver extends BroadcastReceiver {
         if (carouselList != null) p.setCarouselSources(carouselList);
         if (titleApp != null) p.setTitleApp(titleApp);
         if (carouselMin != null) p.setCarouselMinutes(carouselMin);
+        if (hideList != null) p.setHiddenPrayers(hideList);
+        for (int k = 0; k < greet.length; k++) if (greet[k] != null) p.setGreetPhrase(k, "default".equals(greet[k].trim()) ? "" : greet[k]);
         if (boardList != null) p.setBoardItems(boardList);
         if (nextPrayer != null) p.setNextPrayer(nextPrayer);
         if (occasion != null) p.setOccasion("on".equals(occasion));
@@ -481,6 +499,8 @@ public class SaverReceiver extends BroadcastReceiver {
             + "\ncarousel: " + (p.carouselSources().isEmpty() ? "off" : Prefs.join(p.carouselSources(), ","))
             + "\ntitleapp: " + p.titleApp()
             + "\ncarouselmin: " + p.carouselMinutes()
+            + "\nhideprayers: " + (p.hiddenPrayers().isEmpty() ? "none" : Prefs.join(p.hiddenPrayers(), ","))
+            + "\ngreet: " + p.greetShown(0) + " | " + p.greetShown(1) + " | " + p.greetShown(2) + " | " + p.greetShown(3)
             + "\nboard: " + Prefs.join(p.boardItems(), ",")
             + "\nnextprayer: " + p.nextPrayer()
             + "\noccasion: " + (p.occasion() ? "on" : "off")

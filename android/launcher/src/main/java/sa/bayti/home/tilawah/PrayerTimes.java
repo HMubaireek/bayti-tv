@@ -116,6 +116,7 @@ final class PrayerTimes {
         for (int d = 0; d < 3; d++) {
             PrayerTimes t = d == 0 ? today(c) : of(day, place);
             for (int i : PRAYERS) {
+                if (place.hides(i)) continue;   // prayed with the one before it: no adhan, not the next
                 if (t.at[i] > now + 30_000) return new Next(i, t.at[i], t.clock[i]);
             }
             day.add(Calendar.DAY_OF_MONTH, 1);

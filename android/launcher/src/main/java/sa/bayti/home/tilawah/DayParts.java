@@ -17,10 +17,14 @@ public final class DayParts {
     public final String sunLabel, sunClock;
     /** it is Friday in the city: its Dhuhr is the Jumu'ah, with no iqama countdown */
     public final boolean friday;
+    /** «إخفاء العصر والعشاء»: no bar before their adhan (their times still divide the greeting's day) */
+    public final boolean hideAsr, hideIsha;
 
-    private DayParts(long fajr, long dhuhr, long asr, long maghrib, long isha, String sunLabel, String sunClock, boolean friday) {
+    private DayParts(long fajr, long dhuhr, long asr, long maghrib, long isha, String sunLabel, String sunClock, boolean friday,
+                     boolean hideAsr, boolean hideIsha) {
         this.fajr = fajr; this.dhuhr = dhuhr; this.asr = asr; this.maghrib = maghrib; this.isha = isha;
         this.sunLabel = sunLabel; this.sunClock = sunClock; this.friday = friday;
+        this.hideAsr = hideAsr; this.hideIsha = hideIsha;
     }
 
     public static DayParts now(Context c) { return now(c, Place.get(c)); }
@@ -53,6 +57,6 @@ public final class DayParts {
         }
         boolean friday = Calendar.getInstance(TimeZone.getTimeZone(place.tz), Locale.US).get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY;
         return new DayParts(t.at[PrayerTimes.FAJR], t.at[PrayerTimes.DHUHR], t.at[PrayerTimes.ASR],
-                t.at[PrayerTimes.MAGHRIB], t.at[PrayerTimes.ISHA], label, clock, friday);
+                t.at[PrayerTimes.MAGHRIB], t.at[PrayerTimes.ISHA], label, clock, friday, place.hideAsr, place.hideIsha);
     }
 }

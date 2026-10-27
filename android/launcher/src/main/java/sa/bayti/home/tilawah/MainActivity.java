@@ -345,7 +345,9 @@ public class MainActivity extends Activity {
                 // the adhan section: today's times with the next one marked, then the switch and the muezzin
                 PrayerTimes times = PrayerTimes.today(MainActivity.this);
                 PrayerTimes.Next next = PrayerTimes.next(MainActivity.this);
+                Place place = Place.get(MainActivity.this);
                 for (int prayer : PrayerTimes.PRAYERS) {
+                    if (place.hides(prayer)) continue;   // «إخفاء العصر والعشاء»
                     boolean isNext = next != null && next.index == prayer;
                     String detail = PrayerTimes.clock12(times.clock[prayer]);
                     if (isNext) detail += "  •  " + PrayerTimes.remaining(next.at - System.currentTimeMillis());

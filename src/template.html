@@ -680,6 +680,8 @@ const CONFIG = {
   occasion: _Q.get('occasion') !== '0',
   // «الصلاة القادمة» in the bottom row: #nextprayer=always (the default), hour (only in the hour before the adhan, and until the iqama) or off
   nextPrayer: (v => ['hour','off'].includes(v) ? v : 'always')(_Q.get('nextprayer')),
+  // #hideprayers=asr,isha: prayers not shown or counted down to (prayed with the Dhuhr and the Maghrib); their times still divide the day
+  hidePrayers: _list('hideprayers').filter(k => k === 'asr' || k === 'isha'),
   // #method=umm_alqura|jafari|...: a key of PRAYER_METHODS (anything else = umm_alqura, what it always used)
   method: PRAYER_METHODS[_Q.get('method')] ? _Q.get('method') : 'umm_alqura',
   // followed teams in priority order: #teams=id,id,... (up to 20); older builds send team1/team2
@@ -892,9 +894,11 @@ function adjustedTimes(t){
   });
   return out;
 }
+const prayerHidden = k => CONFIG.hidePrayers.includes(k.toLowerCase());
 function buildPrayers(t){
   DAY_TIMES = t = adjustedTimes(t);
-  PRAYERS = PRAYER_KEYS.map(k=>{
+  // the prayers shown and counted down to (the next prayer, the bar before the adhan, the cards); DAY_TIMES keeps all of them
+  PRAYERS = PRAYER_KEYS.filter(k => !prayerHidden(k)).map(k=>{
     const [h,mi] = String(t[k]).split(':').map(Number);
     return {key:k, name:PRAYER_NAMES[k], h, mi};
   });
@@ -2497,7 +2501,7 @@ function prayerRows(){
   const cur = PRAYERS.find(x => { const gap = x.key === 'Dhuhr' && isFriday() ? 0 : (CONFIG.iqama[x.key] || 0); return mins >= at(x.key) && mins < at(x.key) + gap; });
   const lit = cur ? cur.key : (PRAYERS.find(x => at(x.key) > mins) || PRAYERS[0] || {}).key;
   const tomorrow = !cur && PRAYERS.length && !PRAYERS.some(x => at(x.key) > mins);
-  return Object.keys(names).filter(k => DAY_TIMES[k]).map(k => {
+  return Object.keys(names).filter(k => DAY_TIMES[k] && !prayerHidden(k)).map(k => {
     const [h, mi] = String(DAY_TIMES[k]).split(':').map(Number);
     const cls = k === lit ? 'next' : at(k) <= mins && !(tomorrow && k === lit) ? 'past' : '';
     return `<li class="${cls}"><span>${names[k]}</span><span class="dt">${fmt12(h, mi)}</span></li>`;

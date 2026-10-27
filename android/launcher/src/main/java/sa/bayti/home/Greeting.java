@@ -53,8 +53,10 @@ final class Greeting {
         }
         DayParts d = null;
         try { d = DayParts.now(context, snap.fragment); } catch (RuntimeException ignored) { }
-        greeting.setText(d == null ? (hour < 4 ? "تصبح على خير" : hour < 12 ? "صباح الخير" : "مساء الخير")
-                : GreetingText.greeting(GreetingText.part(System.currentTimeMillis(), d.fajr, d.dhuhr, d.asr, d.isha)));
+        int part = d == null ? (hour < 4 ? GreetingText.NIGHT : hour < 12 ? GreetingText.MORNING : GreetingText.EVENING)
+                : GreetingText.part(System.currentTimeMillis(), d.fajr, d.dhuhr, d.asr, d.isha);
+        String own = s.phrases[part];
+        greeting.setText(own.isEmpty() ? GreetingText.greeting(part) : own);
 
         SharedPreferences sp = prefs();
         long at = sp.getLong("at", 0);
@@ -146,6 +148,8 @@ final class Greeting {
         boolean on = true;   // an older screensaver does not say: on, the default
         String city = "الرياض", lat = "24.6877", lon = "46.7219", tz = "Asia/Riyadh";
         boolean latin;
+        /** «التحية»: the owner's own phrase for each part of the day (GreetingText's order), "" for the default */
+        String[] phrases = {"", "", "", ""};
 
         static Config of(ConfigSnapshot snap) {
             Config s = new Config();
@@ -163,6 +167,11 @@ final class Greeting {
                         case "lon": if (value.matches("-?\\d+(\\.\\d+)?")) s.lon = value; break;
                         case "tz": if (!value.trim().isEmpty()) s.tz = value.trim(); break;
                         case "digits": s.latin = "latin".equals(value.toLowerCase(Locale.ROOT)); break;
+                        case "greet": {   // a|b|c|d: morning, day, evening, night
+                            String[] v = value.split("\\|", -1);
+                            for (int k = 0; k < 4 && k < v.length; k++) s.phrases[k] = v[k].trim();
+                            break;
+                        }
                         default: break;
                     }
                 }

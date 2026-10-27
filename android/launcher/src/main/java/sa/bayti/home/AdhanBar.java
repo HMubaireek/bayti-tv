@@ -17,7 +17,7 @@ final class AdhanBar {
         if (!snap.adhanBarOn) return null;
         try {
             DayParts d = DayParts.now(c, snap.fragment);
-            return AdhanBarText.text(System.currentTimeMillis(), new long[]{d.fajr, d.dhuhr, d.asr, d.maghrib, d.isha}, d.friday, snap.latin());
+            return AdhanBarText.text(System.currentTimeMillis(), new long[]{d.fajr, d.dhuhr, d.hideAsr ? 0 : d.asr, d.maghrib, d.hideIsha ? 0 : d.isha}, d.friday, snap.latin());
         } catch (RuntimeException e) {
             return null;
         }

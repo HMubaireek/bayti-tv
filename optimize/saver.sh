@@ -30,7 +30,9 @@
 #                                                  clear removes it. Never printed back (show says set or none)
 #   optimize/saver.sh titleapp nuvio               where «شاهد في …» in أفلام and مسلسلات opens a title, at its own page: auto (default:
 #                                                  the first installed of Nuvio and Stremio), nuvio, stremio or none
-#   optimize/saver.sh carouselmin 5                the carousel moves on by itself every N minutes: 1 (default) 2 3 5 10 15 30, 0 = remote only
+#   optimize/saver.sh hideprayers asr,isha         no Asr and no Isha (prayed with the Dhuhr and the Maghrib): not shown, no adhan, no bar
+#   optimize/saver.sh greet morning 'صباح النور'   the home screen's greeting for morning, day, evening or night (default: the usual one)
+#   optimize/saver.sh carouselmin 5               the carousel moves on by itself every N minutes: 1 (default) 2 3 5 10 15 30, 0 = remote only
 #   optimize/saver.sh board prayers,matches        what «يومي» shows, in order: nextprayer occasion prayers today matches verse wisdom hourly
 #                                                  forecast year stocks tasks shows, or all (the default)
 #   optimize/saver.sh carousel nature,own          the home screen's carousel photos: photosrc's sources and own («صوري»); none = off
@@ -172,6 +174,10 @@ case "${1:-}" in
   titleapp) set1 titleapp "${2:?usage: optimize/saver.sh titleapp auto|nuvio|stremio|none}" ;;
   carouselmin) set1 carouselmin "${2:?usage: optimize/saver.sh carouselmin 0|1|2|3|5|10|15|30}" ;;
   board)    set1 board "${2:?usage: optimize/saver.sh board prayers,matches,verse|all}" ;;
+  hideprayers) set1 hideprayers "${2:?usage: optimize/saver.sh hideprayers asr,isha|none}" ;;
+  greet)
+    case "${2:-}" in morning|day|evening|night) ;; *) echo "usage: optimize/saver.sh greet morning|day|evening|night PHRASE (default: back to the usual)"; exit 1 ;; esac
+    set1 "greet_$2" "${3:?usage: optimize/saver.sh greet morning PHRASE}" ;;
   nextprayer) set1 nextprayer "${2:?usage: optimize/saver.sh nextprayer always|hour|off}" ;;
   occasion) set1 occasion "${2:?usage: optimize/saver.sh occasion on|off}" ;;
   cardstyle)set1 cardstyle "${2:?usage: optimize/saver.sh cardstyle glass1}" ;;

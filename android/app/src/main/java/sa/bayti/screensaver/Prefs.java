@@ -74,6 +74,40 @@ final class Prefs {
     // the page counts its slots from midnight
     static final String[] PHOTO_MINUTES = {"1", "2", "5", "10", "15", "20", "30", "60", "120", "180", "360", "720", "1440"};
 
+    // «التحية»: the home screen's phrase for each part of the day {key, when, the default}; the owner may write their own
+    static final String[][] GREET_PARTS = {
+        {"morning", "صباحًا · من الفجر إلى الظهر", "صباح الخير"},
+        {"day", "نهارًا · من الظهر إلى العصر", "طاب يومك"},
+        {"evening", "مساءً · من العصر إلى العشاء", "مساء الخير"},
+        {"night", "ليلًا · بعد العشاء", "تصبح على خير"},
+    };
+    static final int GREET_CHARS = 40;
+    /** the owner's phrase for that part, or "" for the default */
+    String greetPhrase(int part) { return sp.getString("greet_" + GREET_PARTS[part][0], "").trim(); }
+    void setGreetPhrase(int part, String v) {
+        String s = v == null ? "" : v.replaceAll("[\\r\\n|]+", " ").trim();
+        if (s.length() > GREET_CHARS) s = s.substring(0, GREET_CHARS).trim();
+        sp.edit().putString("greet_" + GREET_PARTS[part][0], s).apply();
+    }
+    String greetShown(int part) { String s = greetPhrase(part); return s.isEmpty() ? GREET_PARTS[part][2] : s; }
+    /** #greet=a|b|c|d for the launcher, only when one is the owner's own (an empty one is the default) */
+    private String greetParam() {
+        boolean any = false;
+        List<String> v = new ArrayList<>();
+        for (int k = 0; k < GREET_PARTS.length; k++) { String s = greetPhrase(k); any |= !s.isEmpty(); v.add(s); }
+        return any ? "&greet=" + Uri.encode(join(v, "|")) : "";
+    }
+
+    // «إخفاء صلاتي العصر والعشاء»: for those who pray them with the Dhuhr and the Maghrib (the Shia practice). Hidden from the next prayer,
+    // the prayer cards, the bar before the adhan and the adhan itself; their times still divide the day (the greeting)
+    static final String[][] HIDE_PRAYERS = {{"asr", "العصر"}, {"isha", "العشاء"}};
+    List<String> hiddenPrayers() {
+        List<String> out = new ArrayList<>();
+        for (String k : sp.getString("hidePrayers", "").split(",")) if (("asr".equals(k) || "isha".equals(k)) && !out.contains(k)) out.add(k);
+        return out;
+    }
+    void setHiddenPrayers(List<String> v) { sp.edit().putString("hidePrayers", join(v, ",")).apply(); }
+
     // how the prayer times are calculated (sent to the page and the launcher as #method=; umm_alqura is what it always used).
     // The page and the launcher each hold the angles of every method (template.html PRAYER_METHODS, the launcher's PrayerMath.Method).
     static final String[][] PRAYER_METHODS = {
@@ -486,6 +520,8 @@ final class Prefs {
         return "city=" + Uri.encode(city[0]) + "&lat=" + city[1] + "&lon=" + city[2]
             + "&tz=" + Uri.encode(cityTz())
             + "&method=" + prayerMethod()
+            + (hiddenPrayers().isEmpty() ? "" : "&hideprayers=" + join(hiddenPrayers(), ","))
+            + greetParam()
             + "&teams=" + join(teamIds(), ",")
             + "&events=" + join(list("events"), ",")
             + "&leagues=" + Uri.encode(join(leagues(), ","))
