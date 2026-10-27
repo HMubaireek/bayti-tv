@@ -38,14 +38,14 @@ fi
 echo "$3" >> "$SENT"
 case "$3" in
   "wm size") echo "Physical size: ${FAKE_SCREEN:-1920x1080}" ;;
-  *PHOTOS*"op list"*) printf 'Broadcast completed: result=0, data="photos: %s of 10\nmode: %s (x)"\n' "${FAKE_N:-0}" "${FAKE_MODE:-mix}" ;;
+  *PHOTOS*"op list"*) printf 'Broadcast completed: result=0, data="photos: %s of 60\nmode: %s (x)"\n' "${FAKE_N:-0}" "${FAKE_MODE:-mix}" ;;
   *PHOTOS*"op add"*)
     if [ -n "${FAKE_ADD_FAIL:-}" ] && { [ "$FAKE_ADD_FAIL" = all ] || [[ "$3" != *"--es path"* ]]; }; then
       echo 'Broadcast completed: result=0, data="error: no such file"'
     else
-      printf 'Broadcast completed: result=0, data="saved\nphotos: 1 of 10"\n'
+      printf 'Broadcast completed: result=0, data="saved\nphotos: 1 of 60"\n'
     fi ;;
-  *PHOTOS*) printf 'Broadcast completed: result=0, data="saved\nphotos: 1 of 10"\n' ;;
+  *PHOTOS*) printf 'Broadcast completed: result=0, data="saved\nphotos: 1 of 60"\n' ;;
 esac
 ''')
 os.chmod(fake, 0o755)
@@ -82,7 +82,7 @@ def photo(name, size=(3000, 2000)):
 
 # list, clear, del, mode
 rc, out, sent = run("list")
-check("list", rc == 0 and sent == [A + "--es op list"] and out.startswith("photos: 0 of 10"), (sent, out))
+check("list", rc == 0 and sent == [A + "--es op list"] and out.startswith("photos: 0 of 60"), (sent, out))
 rc, out, sent = run("clear")
 check("clear", rc == 0 and sent == [A + "--es op clear"], sent)
 rc, out, sent = run("del", "3")
@@ -122,7 +122,7 @@ check("add: what is uploaded is resized (3000 px -> 1920 at most) and has no met
 check("add: the shell streams it into the app, then the staging file goes",
       sum("content write --uri content://sa.bayti.screensaver.config/own-in < /data/local/tmp/urtv-own/in.jpg" in s for s in sent) == 2
       and any(s.startswith("rm -f /data/local/tmp/urtv-own/in.jpg") for s in sent), sent)
-check("add: ends with the list", "photos: 2 of 10" in out.split("added")[-1], out)
+check("add: ends with the list", "photos: 2 of 60" in out.split("added")[-1], out)
 
 # where `content write` cannot work, the app reads the staged file itself
 rc, out, sent = run("add", a, n=0, fail="first")
@@ -131,12 +131,12 @@ rc, out, sent = run("add", a, n=0, fail="all")
 check("add: when both ways fail, says so and exits 1", rc != 0 and "error: no such file" in out, out)
 
 # refusals before anything is uploaded
-rc, out, sent = run("add", a, n=9, screen=None)
-check("add: no room (9 + 1 fits)", rc == 0, out)
-rc, out, sent = run("add", a, b, n=9)
-check("add: no room (9 + 2): refused, nothing uploaded", rc != 0 and "room for 1" in out and not [s for s in sent if s.startswith("PUSH")], out)
-rc, out, sent = run("add", *[a] * 11)
-check("add: 11 files: refused at once", rc != 0 and "at most 10" in out and not sent, out + str(sent))
+rc, out, sent = run("add", a, n=59, screen=None)
+check("add: no room (59 + 1 fits)", rc == 0, out)
+rc, out, sent = run("add", a, b, n=59)
+check("add: no room (59 + 2): refused, nothing uploaded", rc != 0 and "room for 1" in out and not [s for s in sent if s.startswith("PUSH")], out)
+rc, out, sent = run("add", *[a] * 61)
+check("add: 61 files: refused at once", rc != 0 and "at most 60" in out and not sent, out + str(sent))
 bad = os.path.join(tmp, "notaphoto.jpg")
 open(bad, "wb").write(b"hello")
 rc, out, sent = run("add", a, bad)
