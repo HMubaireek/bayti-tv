@@ -28,12 +28,12 @@ check("HomeCard: the target is moved over the card by what the page says (liveRe
       "liveRect" in card and "getDisplayMetrics().density" in card)
 check("HomeCard: the page asks for nothing new (no network, no JavaScript interface)", "addJavascriptInterface" not in card)
 check("MainActivity: OK on the card opens the list with EXTRA_MIC", "putExtra(TasksActivity.EXTRA_MIC, true)" in main)
-check("MainActivity: the card sits between the pills and the dock: pills down -> card, card down -> dock, dock up -> card, card up -> the pill it came from",
-      "p.setNextFocusDownId(card != null ? card.getId()" in main and "card.setNextFocusDownId(dockId" in main
-      and "int topId = card != null ? card.getId() : pills.get(0).getId();" in main and "card.setNextFocusUpId(v.getId())" in main)
+check("MainActivity: the card sits between the top bar and the dock: down from the top bar -> (the carousel's stop) -> card -> dock, and back up",
+      "if (card != null) return card;" in main and "card.setNextFocusDownId(dockId" in main
+      and "int dockUp = card != null ? card.getId() : heroOn ? heroFocus.getId() : upId;" in main and "card.setNextFocusUpId(heroOn ? heroFocus.getId() : upId);" in main)
 check("MainActivity: the order is re-wired when the settings bring the card or take it away", "wireFocus();   // the «المهام» card may have come or gone" in main)
 check("TasksActivity: from the card the first render focuses «🎤 تكلّم», later ones the list as before",
       'EXTRA_MIC = "mic"' in tasks and "if (micFirst && mic.getVisibility() == View.VISIBLE) f = mic;" in tasks and "micFirst = false;" in tasks)
 check("TasksActivity: the mic still starts the voice adding on OK", 'mic = pill("🎤 تكلّم", GOLD, v -> listen());' in tasks)
-check("the «المهام» pill still opens the list as it did (no mic-first)", 'tasks.setOnClickListener(v -> launch(new Intent(this, TasksActivity.class)))' in main)
+check("the «المهام» tile of «المزيد» opens the list as the pill did (no mic-first)", 'v -> launch(new Intent(this, TasksActivity.class))' in main)
 sys.exit(1 if failed else 0)
